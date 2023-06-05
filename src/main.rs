@@ -67,8 +67,6 @@ fn main() -> Result<(), Error>{
 
             //  push to vector
             user_collections.push((name.as_str().unwrap(), email.as_str().unwrap()));
-
-            println!("user_collections {:?}", user_collections);
         }
 
         for (name, email) in user_collections {
