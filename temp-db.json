@@ -1,0 +1,52 @@
+[
+  {
+    "name": "user one",
+    "email": "userone.email.com",
+    "password": "useronepassword"
+  },
+  {
+    "name": "user two",
+    "email": "usertwo.email.com",
+    "password": "usertwopassword"
+  },
+  {
+    "name": "user three",
+    "email": "userthree.email.com",
+    "password": "userthreepassword"
+  },
+  {
+    "name": "user four",
+    "email": "userfour.email.com",
+    "password": "userfourpassword"
+  },
+  {
+    "name": "user five",
+    "email": "userfive.email.com",
+    "password": "userfivepassword"
+  },
+  {
+    "name": "user six",
+    "email": "usersix.email.com",
+    "password": "usersixpassword"
+  },
+  {
+    "name": "user seven",
+    "email": "userseven.email.com",
+    "password": "usersevenpassword"
+  },
+  {
+    "name": "user eight",
+    "email": "usereight.email.com",
+    "password": "usereightpassword"
+  },
+  {
+    "name": "user nine",
+    "email": "usernine.email.com",
+    "password": "userninepassword"
+  },
+  {
+    "name": "neu",
+    "email": "bajobeulah@gmail.com",
+    "password": "neupassword"
+  }
+]
