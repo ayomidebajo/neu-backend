@@ -13,16 +13,27 @@ use postgres::{Client, Error, NoTls};
 //  TODO: Change API
 
 #[derive(Deserialize, Debug)]
-struct User {
+pub struct User {
     name: String,
     email: String,
-    password: String,
+    // password: String,
+}
+
+impl User {
+    pub fn new(name: String, email: String) -> Self {
+        Self {
+            name,
+            email,
+            // password,
+        }
+    }
 }
 
 fn main() -> Result<(), Error> {
     const CMD_CREATE: &str = "create";
     const CMD_ADD: &str = "add";
     const CMD_LIST: &str = "list";
+    const CMD_IMPORT: &str = "import";
 
     let matches = Command::new("neu-backend")
         .version("0.1.0")
@@ -45,6 +56,7 @@ fn main() -> Result<(), Error> {
             ),
         )
         .subcommand(Command::new(CMD_LIST).about("print list of users"))
+        .subcommand(Command::new(CMD_IMPORT).about("import users from json file"))
         .get_matches();
 
     let addr = matches.clone();
@@ -57,6 +69,19 @@ fn main() -> Result<(), Error> {
             // create_table(&mut conn).unwrap();
         }
         Some((CMD_ADD, matched)) => {
+            let name = matched.get_one::<String>("NAME").unwrap().to_owned();
+            let email = matched.get_one::<String>("EMAIL").unwrap().to_owned();
+            let user = User { name, email };
+            create_user(&mut conn, &user)?;
+        }
+        Some((CMD_LIST, _)) => {
+            println!("list");
+            let users = list_users(&mut conn)?;
+            for user in users {
+                println!("user: {:?}", user);
+            }
+        }
+        Some((CMD_IMPORT, matched)) => {
             let name = matched.get_one::<String>("name").unwrap();
 
             let file = File::open(name).expect("error opening file");
@@ -79,17 +104,9 @@ fn main() -> Result<(), Error> {
                 }
 
                 for (name, email) in user_collections {
-                    create_user(&mut conn, name, email)?;
+                    let user = User::new(name.to_string(), email.to_string());
+                    create_user(&mut conn, &user)?;
                 }
-            }
-            println!("name {}", name);
-        }
-        Some((CMD_LIST, _)) => {
-            println!("list");
-            let users = list_users(&mut conn)?;
-            // let users = list_users(&mut conn).unwrap();
-            for user in users {
-                println!("user: {:?}", user);
             }
         }
         _ => {
@@ -110,19 +127,25 @@ fn create_table(conn: &mut Client) -> Result<(), Error> {
 
 // This function demonstrates how to insert data into the database.
 // TODO: return the id of the inserted row or the email address so that we can send the user a confirmation email.
-fn create_user(conn: &mut Client, name: &str, email: &str) -> Result<(), Error> {
+fn create_user(conn: &mut Client, user: &User) -> Result<(), Error> {
     conn.execute(
         "INSERT INTO users (name, email) VALUES ($1, $2)",
-        &[&name, &email],
+        &[&user.email, &user.email],
     )
     .map(drop)
 }
 
-fn list_users(conn: &mut Client) -> Result<Vec<(String, String)>, Error> {
+fn list_users(conn: &mut Client) -> Result<Vec<User>, Error> {
     let res = conn
         .query("SELECT name, email FROM users", &[])?
         .into_iter()
-        .map(|row| (row.get(0), row.get(1)))
+        .map(|row| {
+            User {
+                name: row.get(0),
+                email: row.get(1),
+                //    password: "".to_string(),
+            }
+        })
         .collect();
     Ok(res)
 }
