@@ -78,7 +78,7 @@ fn main() -> Result<(), Error> {
             println!("list");
             let users = list_users(&mut conn)?;
             for user in users {
-                println!("user: {:?}", user);
+                 println!("Name: {:20}    Email: {:20}", user.name, user.email);
             }
         }
         Some((CMD_IMPORT, matched)) => {
