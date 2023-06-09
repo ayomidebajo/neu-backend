@@ -538,6 +538,7 @@ dependencies = [
  "clap",
  "failure",
  "postgres",
+ "r2d2",
  "r2d2_postgres",
  "rayon",
  "serde",
