@@ -1,8 +1,10 @@
+use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder};
 use r2d2_postgres::PostgresConnectionManager;
 use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
 use serde_derive::Deserialize;
 use serde_json::{Result as SerdeResult, Value};
 use std::io::BufReader;
+use std::thread;
 use std::{
     fs::File,
     io::{self, BufRead},
@@ -12,7 +14,15 @@ use std::{
 use clap::{arg, Arg, ArgAction, Command, Parser};
 use postgres::{Client, Error, NoTls};
 
-//  TODO: Change API
+//  TODO: Learn actix
+//  Create login endpoint (JWT) for users
+//  Create register endpoint
+//  Create logout endpoint
+// Create a forgot password endpoint
+// Create a reset password endpoint
+// Create a delete account endpoint
+// Create a verify email endpoint
+// Create a resend verification email endpoint
 
 #[derive(Deserialize, Debug)]
 pub struct User {
@@ -31,7 +41,12 @@ impl User {
     }
 }
 
-fn main() -> Result<(), failure::Error> {
+#[get("/")]
+async fn hello() -> impl Responder {
+    HttpResponse::Ok().body("Hello world!")
+}
+
+fn import() -> Result<(), failure::Error> {
     const CMD_CREATE: &str = "create";
     const CMD_ADD: &str = "add";
     const CMD_LIST: &str = "list";
@@ -68,7 +83,12 @@ fn main() -> Result<(), failure::Error> {
         .subcommand(
             Command::new(CMD_IMPORT)
                 .about("import users from json file")
-                .arg(Arg::new("name").help("add file").value_name("FILE").required(true)),
+                .arg(
+                    Arg::new("name")
+                        .help("add file")
+                        .value_name("FILE")
+                        .required(true),
+                ),
         )
         .get_matches();
 
@@ -110,6 +130,15 @@ fn main() -> Result<(), failure::Error> {
             // Iterate through the JSON object
             if let Some(items) = data.as_array() {
                 let mut user_collections: Vec<(&str, &str)> = Vec::new();
+
+                for item in items {
+                    // Access individual fields or values within each item
+                    let name = item.get("name").expect("error getting name");
+                    let email = item.get("email").expect("error getting email");
+
+                    //  push to vector
+                    user_collections.push((name.as_str().unwrap(), email.as_str().unwrap()));
+                }
                 user_collections
                     .par_iter()
                     .map(|item| {
@@ -125,19 +154,6 @@ fn main() -> Result<(), failure::Error> {
                         create_user(&mut conn, &user)
                     })
                     .for_each(drop);
-                for item in items {
-                    // Access individual fields or values within each item
-                    let name = item.get("name").expect("error getting name");
-                    let email = item.get("email").expect("error getting email");
-
-                    //  push to vector
-                    user_collections.push((name.as_str().unwrap(), email.as_str().unwrap()));
-                }
-
-                for (name, email) in user_collections {
-                    let user = User::new(name.to_string(), email.to_string());
-                    create_user(&mut conn, &user)?;
-                }
             }
         }
         _ => {
@@ -146,6 +162,21 @@ fn main() -> Result<(), failure::Error> {
     }
 
     Ok(())
+}
+
+#[actix_web::main]
+async fn main() -> std::io::Result<()> {
+    // this thread is needed to run the blocking function `import` for importing the data into the db
+    thread::spawn(|| {
+        import().expect("expected a command at least");
+    })
+    .join()
+    .unwrap();
+
+    HttpServer::new(|| App::new().service(hello))
+        .bind(("127.0.0.1", 8080))?
+        .run()
+        .await
 }
 
 fn create_table(conn: &mut Client) -> Result<(), Error> {
