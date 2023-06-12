@@ -1,22 +1,19 @@
-use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder};
+mod db;
+pub mod error;
+
+use actix_web::{get, App, HttpResponse, HttpServer, Responder};
 use dotenv::dotenv;
 use r2d2_postgres::PostgresConnectionManager;
 use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
-use serde_derive::Deserialize;
-use serde_json::{Result as SerdeResult, Value};
+use serde_json::Value;
 use std::io::BufReader;
 use std::thread;
-use std::{
-    env,
-    fs::File,
-    io::{self, BufRead},
-};
+use std::{env, fs::File};
 
 // Title: Rust Postgres
-use clap::{arg, Arg, ArgAction, Command, Parser};
-use postgres::{Client, Error, NoTls};
+use clap::{Arg, Command};
+use postgres::NoTls;
 
-//  TODO: Learn actix
 //  Create login endpoint (JWT) for users
 //  Create register endpoint
 //  Create logout endpoint
@@ -26,56 +23,33 @@ use postgres::{Client, Error, NoTls};
 // Create a verify email endpoint
 // Create a resend verification email endpoint
 
-#[derive(Deserialize, Debug)]
-pub struct User {
-    name: String,
-    email: String,
-    // password: String,
-}
-
-impl User {
-    pub fn new(name: String, email: String) -> Self {
-        Self {
-            name,
-            email,
-            // password,
-        }
-    }
-}
-
 #[get("/")]
 async fn hello() -> impl Responder {
     HttpResponse::Ok().body("Hello world!")
 }
 
 fn import() -> Result<(), failure::Error> {
-    const CMD_CREATE: &str = "create";
+    const CMD_CREATE_TABLE: &str = "create_table";
+    // const CMD_CREATE_MERCHANTS_TABLE: &str = "create_merchants_table";
     const CMD_ADD: &str = "add";
     const CMD_LIST: &str = "list";
-    const CMD_IMPORT: &str = "import";
+    const CMD_IMPORT_USERS: &str = "import_users";
 
     let matches = Command::new("neu-backend")
         .version("0.1.0")
         .author("Neu Team <hello.neu@gmail.com>")
-        // .arg(
-        //     Arg::new("dev")
-        //         .long("db")
-        //         .value_name("ADDR")
-        //         .help("Sets an address of db connection")
-        //         .required(false),
-        // )
-        .subcommand(Command::new(CMD_CREATE).about("create users table"))
+        .subcommand(Command::new(CMD_CREATE_TABLE).about("create table"))
         .subcommand(
             Command::new(CMD_ADD)
                 .about("add user to the table")
                 .arg(
-                    Arg::new("name")
+                    Arg::new("email")
                         .help("Sets the name of a user")
                         .index(1)
                         .required(true),
                 )
                 .arg(
-                    Arg::new("email")
+                    Arg::new("password")
                         .help("Set the email of a user")
                         .index(2)
                         .required(true),
@@ -83,7 +57,7 @@ fn import() -> Result<(), failure::Error> {
         )
         .subcommand(Command::new(CMD_LIST).about("print list of users"))
         .subcommand(
-            Command::new(CMD_IMPORT)
+            Command::new(CMD_IMPORT_USERS)
                 .about("import users from json file")
                 .arg(
                     Arg::new("name")
@@ -100,18 +74,17 @@ fn import() -> Result<(), failure::Error> {
     let mut conn = pool.get()?;
 
     match matches.subcommand() {
-        Some((CMD_CREATE, _)) => {
-            match create_table(&mut conn) {
+        Some((CMD_CREATE_TABLE, _)) => {
+            match db::create_table(&mut conn) {
                 Ok(_) => println!("table created"),
                 Err(e) => println!("error creating table: {}", e),
             };
-            // create_table(&mut conn).unwrap();
         }
         Some((CMD_ADD, matched)) => {
-            let name = matched.get_one::<String>("name").unwrap().to_owned();
             let email = matched.get_one::<String>("email").unwrap().to_owned();
-            let user = User { name, email };
-            match create_user(&mut conn, &user) {
+            let password = matched.get_one::<String>("password").unwrap().to_owned();
+            let user = db::User::new("placeholder name".to_owned(), email, password);
+            match db::create_user(&mut conn, &user) {
                 Ok(_) => println!("user created"),
                 Err(e) => println!("error creating user: {}", e),
             }
@@ -120,7 +93,7 @@ fn import() -> Result<(), failure::Error> {
             println!("list");
             // let users = list_users(&mut conn)?;
 
-            match list_users(&mut conn) {
+            match db::list_users(&mut conn) {
                 Ok(users) => {
                     for user in users {
                         println!("Name: {:20}    Email: {:20}", user.name, user.email);
@@ -129,7 +102,7 @@ fn import() -> Result<(), failure::Error> {
                 Err(e) => println!("error listing users: {}", e),
             }
         }
-        Some((CMD_IMPORT, matched)) => {
+        Some((CMD_IMPORT_USERS, matched)) => {
             let name = matched.get_one::<String>("name").unwrap();
 
             let file = File::open(name).expect("error opening file");
@@ -158,17 +131,16 @@ fn import() -> Result<(), failure::Error> {
                         let name = item.0;
                         let email = item.1;
 
-                        let user = User {
-                            name: name.to_string(),
-                            email: email.to_string(),
-                        };
+                        let user = db::User::new(name.to_string(), email.to_string(), "password".to_string());
 
-                        create_user(&mut conn, &user)
+                        db::create_user(&mut conn, &user)
                     })
                     .for_each(drop);
+
+                println!("imported users");
             }
         }
-       _ => println!("no subcommand, will continue to run as a web server"),
+        _ => println!("no subcommand, will continue to run as a web server"),
     }
 
     Ok(())
@@ -179,7 +151,6 @@ async fn main() -> std::io::Result<()> {
     dotenv().ok();
     // this thread is needed to run the blocking function `import` for importing the data into the db
     thread::spawn(|| {
-        
         import().expect("expected a command at least");
     })
     .join()
@@ -189,37 +160,4 @@ async fn main() -> std::io::Result<()> {
         .bind(("127.0.0.1", 8080))?
         .run()
         .await
-}
-
-fn create_table(conn: &mut Client) -> Result<(), Error> {
-    conn.execute(
-        "CREATE TABLE users ( id SERIAL PRIMARY KEY, name VARCHAR NOT NULL, email VARCHAR UNIQUE )",
-        &[],
-    )
-    .map(drop)
-}
-
-// This function demonstrates how to insert data into the database.
-// TODO: return the id of the inserted row or the email address so that we can send the user a confirmation email.
-fn create_user(conn: &mut Client, user: &User) -> Result<(), Error> {
-    conn.execute(
-        "INSERT INTO users (name, email) VALUES ($1, $2)",
-        &[&user.email, &user.email],
-    )
-    .map(drop)
-}
-
-fn list_users(conn: &mut Client) -> Result<Vec<User>, Error> {
-    let res = conn
-        .query("SELECT name, email FROM users", &[])?
-        .into_iter()
-        .map(|row| {
-            User {
-                name: row.get(0),
-                email: row.get(1),
-                //    password: "".to_string(),
-            }
-        })
-        .collect();
-    Ok(res)
 }
