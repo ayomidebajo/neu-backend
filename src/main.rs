@@ -1,4 +1,5 @@
 use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder};
+use dotenv::dotenv;
 use r2d2_postgres::PostgresConnectionManager;
 use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
 use serde_derive::Deserialize;
@@ -6,6 +7,7 @@ use serde_json::{Result as SerdeResult, Value};
 use std::io::BufReader;
 use std::thread;
 use std::{
+    env,
     fs::File,
     io::{self, BufRead},
 };
@@ -55,13 +57,13 @@ fn import() -> Result<(), failure::Error> {
     let matches = Command::new("neu-backend")
         .version("0.1.0")
         .author("Neu Team <hello.neu@gmail.com>")
-        .arg(
-            Arg::new("database")
-                .long("db")
-                .value_name("ADDR")
-                .help("Sets an address of db connection")
-                .required(true),
-        )
+        // .arg(
+        //     Arg::new("dev")
+        //         .long("db")
+        //         .value_name("ADDR")
+        //         .help("Sets an address of db connection")
+        //         .required(false),
+        // )
         .subcommand(Command::new(CMD_CREATE).about("create users table"))
         .subcommand(
             Command::new(CMD_ADD)
@@ -92,29 +94,39 @@ fn import() -> Result<(), failure::Error> {
         )
         .get_matches();
 
-    let addr = matches.clone();
-    let addr = addr.get_one::<String>("database").unwrap();
+    let addr = env::var("DB").expect("DB must be set");
     let manager = PostgresConnectionManager::new(addr.parse().unwrap(), NoTls);
-    // let mut conn = Client::connect(&addr, NoTls).unwrap();
     let pool = r2d2::Pool::new(manager)?;
     let mut conn = pool.get()?;
 
     match matches.subcommand() {
         Some((CMD_CREATE, _)) => {
-            create_table(&mut conn)?;
+            match create_table(&mut conn) {
+                Ok(_) => println!("table created"),
+                Err(e) => println!("error creating table: {}", e),
+            };
             // create_table(&mut conn).unwrap();
         }
         Some((CMD_ADD, matched)) => {
             let name = matched.get_one::<String>("name").unwrap().to_owned();
             let email = matched.get_one::<String>("email").unwrap().to_owned();
             let user = User { name, email };
-            create_user(&mut conn, &user)?;
+            match create_user(&mut conn, &user) {
+                Ok(_) => println!("user created"),
+                Err(e) => println!("error creating user: {}", e),
+            }
         }
         Some((CMD_LIST, _)) => {
             println!("list");
-            let users = list_users(&mut conn)?;
-            for user in users {
-                println!("Name: {:20}    Email: {:20}", user.name, user.email);
+            // let users = list_users(&mut conn)?;
+
+            match list_users(&mut conn) {
+                Ok(users) => {
+                    for user in users {
+                        println!("Name: {:20}    Email: {:20}", user.name, user.email);
+                    }
+                }
+                Err(e) => println!("error listing users: {}", e),
             }
         }
         Some((CMD_IMPORT, matched)) => {
@@ -125,7 +137,7 @@ fn import() -> Result<(), failure::Error> {
             let reader = BufReader::new(file);
 
             // Deserialize the JSON data
-            let data: Value = serde_json::from_reader(reader).expect("error while reading json");
+            let data: Value = serde_json::from_reader(reader)?;
 
             // Iterate through the JSON object
             if let Some(items) = data.as_array() {
@@ -156,9 +168,7 @@ fn import() -> Result<(), failure::Error> {
                     .for_each(drop);
             }
         }
-        _ => {
-            println!("no subcommand");
-        }
+       _ => println!("no subcommand, will continue to run as a web server"),
     }
 
     Ok(())
@@ -166,12 +176,14 @@ fn import() -> Result<(), failure::Error> {
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+    dotenv().ok();
     // this thread is needed to run the blocking function `import` for importing the data into the db
     thread::spawn(|| {
+        
         import().expect("expected a command at least");
     })
     .join()
-    .unwrap();
+    .expect("thread errror");
 
     HttpServer::new(|| App::new().service(hello))
         .bind(("127.0.0.1", 8080))?
