@@ -15,3 +15,14 @@
 ## list users
 `cargo run list`
 
+
+## docker and postgres
+
+### create db
+`export DATABASE_URL=postgres://postgres:password@localhost:5432/neu_db`
+
+### migrate db
+for example `sqlx migrate add create_subscriptions_table`
+
+then run `sqlx migrate run`
+
