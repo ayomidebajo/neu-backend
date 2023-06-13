@@ -2,8 +2,8 @@ use actix_web::{HttpResponse, ResponseError};
 
 // TODO: Implemt error handling well
 
-use postgres::{Error};
-    use derive_more::{Display,};
+use postgres::Error;
+    use derive_more::Display;
     // use tokio_pg_mapper::Error as PGMError;
     use postgres::error::Error as PGError;
 

@@ -1,7 +1,8 @@
-mod db;
+pub mod db;
 pub mod error;
-
-use actix_web::{get, App, HttpResponse, HttpServer, Responder};
+pub mod controller;
+use std::net::TcpListener;
+use tokio;
 use dotenv::dotenv;
 use r2d2_postgres::PostgresConnectionManager;
 use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
@@ -9,7 +10,7 @@ use serde_json::Value;
 use std::io::BufReader;
 use std::thread;
 use std::{env, fs::File};
-
+use neu_backend::run;
 // Title: Rust Postgres
 use clap::{Arg, Command};
 use postgres::NoTls;
@@ -23,10 +24,7 @@ use postgres::NoTls;
 // Create a verify email endpoint
 // Create a resend verification email endpoint
 
-#[get("/")]
-async fn hello() -> impl Responder {
-    HttpResponse::Ok().body("Hello world!")
-}
+
 
 fn import() -> Result<(), failure::Error> {
     const CMD_CREATE_TABLE: &str = "create_table";
@@ -84,9 +82,9 @@ fn import() -> Result<(), failure::Error> {
             let email = matched.get_one::<String>("email").unwrap().to_owned();
             let password = matched.get_one::<String>("password").unwrap().to_owned();
             let user = db::User::new("placeholder name".to_owned(), email, password);
-            match db::create_user(&mut conn, &user) {
-                Ok(_) => println!("user created"),
-                Err(e) => println!("error creating user: {}", e),
+            match db::login_user(&mut conn, &user) {
+                Ok(e) => println!("logging in user: {:?}", e),
+               Err(e) => println!("error logging in user {}", e),
             }
         }
         Some((CMD_LIST, _)) => {
@@ -146,9 +144,11 @@ fn import() -> Result<(), failure::Error> {
     Ok(())
 }
 
-#[actix_web::main]
+
+#[tokio::main]
 async fn main() -> std::io::Result<()> {
-    dotenv().ok();
+
+     dotenv().ok();
     // this thread is needed to run the blocking function `import` for importing the data into the db
     thread::spawn(|| {
         import().expect("expected a command at least");
@@ -156,8 +156,11 @@ async fn main() -> std::io::Result<()> {
     .join()
     .expect("thread errror");
 
-    HttpServer::new(|| App::new().service(hello))
-        .bind(("127.0.0.1", 8080))?
-        .run()
-        .await
+    let address = TcpListener::bind("127.0.0.1:0")?;
+
+
+    run(address)?.await
 }
+
+
+

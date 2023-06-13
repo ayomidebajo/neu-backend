@@ -7,18 +7,27 @@ edition = "2021"
 
 [dependencies]
 actix-web = "4.3.1"
+argon2 = "0.5.0"
 clap = {features = ["derive"], version = "4.3.0"}
 deadpool-postgres = "0.10.5"
 derive_more = "0.99.17"
 dotenv = "0.15.0"
 failure = "0.1.8"
-password-hash = "0.5.0"
 postgres = "0.19.5"
 r2d2 = "0.8.10"
 r2d2_postgres = "0.18.1"
 rayon = "1.7.0"
+reqwest = "0.11.18"
 serde = "1.0"
 serde_derive = "1.0.163"
 serde_json = "1.0"
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
 tokio-pg-mapper = "0.2.0"
 tokio-postgres = "0.7.8"
+
+[lib]
+path = "src/lib.rs"
+
+[[bin]]
+name = "neu-backend"
+path = "src/main.rs"
