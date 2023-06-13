@@ -1,6 +1,7 @@
 pub mod db;
 pub mod error;
 pub mod controller;
+pub mod models;
 use std::net::TcpListener;
 use tokio;
 use dotenv::dotenv;
@@ -157,7 +158,10 @@ async fn main() -> std::io::Result<()> {
     .expect("thread errror");
 
     let address = TcpListener::bind("127.0.0.1:0")?;
+    let port = address.local_addr().unwrap().port();
 
+    let random_addr = format!("http://127.0.0.1:{}", port);
+    println!("listening on {}", random_addr);
 
     run(address)?.await
 }

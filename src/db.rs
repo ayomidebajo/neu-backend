@@ -5,9 +5,6 @@ use argon2::{
 use postgres::{Client, Error};
 use serde_derive::{Deserialize, Serialize};
 
-// use error;
-// use crate::error::MyError;
-
 #[derive(Debug, Serialize, Deserialize)]
 pub struct User {
     pub name: String,

@@ -1,6 +1,7 @@
-use std::net::TcpListener;
-use reqwest;
 use neu_backend::run;
+use reqwest;
+use std::net::TcpListener;
+use neu_backend::models;
 
 fn spawn_app() -> String {
     let listener = TcpListener::bind("127.0.0.1:0").expect("Failed to bind random port");
@@ -12,7 +13,7 @@ fn spawn_app() -> String {
     format!("http://127.0.0.1:{}", port)
 }
 
-#[tokio::test]
+#[actix_rt::test]
 async fn health_check_works() {
     // Arrange
     let address = spawn_app();
@@ -31,13 +32,13 @@ async fn health_check_works() {
     assert_eq!(Some(0), response.content_length());
 }
 
-#[tokio::test]
+#[actix_rt::test]
 async fn home_page_works() {
-	// Arrange
+    // Arrange
     let address = spawn_app();
     let client = reqwest::Client::new();
 
-	  // Act
+    // Act
     let response = client
         // Use the returned application address
         .get(&format!("{}/home", &address))
@@ -45,9 +46,37 @@ async fn home_page_works() {
         .await
         .expect("Failed to execute request.");
 
-
     // Assert
     assert!(response.status().is_success());
     assert_eq!(response.content_length().unwrap() > 0, true);
+}
 
+#[actix_rt::test]
+async fn sign_up_works() {
+    // ARRANGE
+    let address = spawn_app();
+    let client = reqwest::Client::new();
+	let cus = models::Customer {
+		fname: "John".to_string(),
+		lname: "Doe".to_string(),
+		email: "johndoe@gmail.com".to_string(),
+		password: "password".to_string(),
+		phone_no: "08012345678".to_string(),
+		is_merchant: false,
+		is_verified_user: false
+	};
+
+	let json_body = serde_json::to_string(&cus).unwrap();
+
+    // ACT
+    let repsonse = client
+        .post(&format!("{}/sign_up", address))
+        .header("Content-Type", "application/json").body(json_body)
+        .send()
+        .await
+        .expect("Failed to execute rewuest");
+
+    // Assert
+    assert!(repsonse.status().is_success());
+	println!("{:?}", repsonse.text().await.unwrap());
 }
