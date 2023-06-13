@@ -151,6 +151,7 @@ async fn main() -> std::io::Result<()> {
 
      dotenv().ok();
     // this thread is needed to run the blocking function `import` for importing the data into the db
+    // Might change to use tokio::spawn_blocking instead
     thread::spawn(|| {
         import().expect("expected a command at least");
     })
