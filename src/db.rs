@@ -76,12 +76,11 @@ pub fn login_user(conn: &mut Client, user: &User) -> Result<(), Error> {
 
     // let password_hash = String::from(binding.as).unwrap();
     let res = conn.query(
-		"SELECT id FROM users WHERE email = $1 AND password = $2",
-		&[&user.email, &password_hash],
-	)?;
+        "SELECT id FROM users WHERE email = $1 AND password = $2",
+        &[&user.email, &password_hash],
+    )?;
 
-	Ok(())
-
+    Ok(())
 }
 
 pub fn list_users(conn: &mut Client) -> Result<Vec<User>, Error> {
