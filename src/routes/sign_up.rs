@@ -4,6 +4,8 @@ use chrono::Utc;
 use sqlx::PgPool;
 use uuid::Uuid;
 
+// ADD HASHING POWER
+
 pub async fn sign_up(req: web::Json<Customer>, connection: web::Data<PgPool>) -> HttpResponse {
     match sqlx::query!(
         r#"
