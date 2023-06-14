@@ -1,5 +1,5 @@
-use crate::models::{Customer, Subcriptions};
-use actix_web::{web, HttpResponse, Responder};
+use crate::models::Customer;
+use actix_web::{web, HttpResponse};
 use chrono::Utc;
 use sqlx::PgPool;
 use uuid::Uuid;
@@ -26,11 +26,11 @@ INSERT INTO customers (id, email, fname, lname, is_merchant, password, is_verifi
     .await
     {
         Ok(_) => {
-            return HttpResponse::Ok().finish();
+            HttpResponse::Ok().finish()
         }
         Err(e) => {
             println!("Failed to execute query: {}", e);
-            return HttpResponse::InternalServerError().finish();
+            HttpResponse::InternalServerError().finish()
         }
     }
     // HttpResponse::Ok().body(format!("Welcome {} {}", req.fname, req.email))

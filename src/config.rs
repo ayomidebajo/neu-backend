@@ -1,6 +1,4 @@
-use config::Config;
-use serde_derive::{Deserialize, Serialize};
-use std::convert::Infallible;
+use serde_derive::Deserialize;
 
 #[derive(Deserialize)]
 pub struct Settings {

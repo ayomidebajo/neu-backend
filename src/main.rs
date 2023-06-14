@@ -9,12 +9,11 @@ use postgres::NoTls;
 use r2d2_postgres::PostgresConnectionManager;
 use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
 use serde_json::Value;
-use sqlx::{Connection, PgPool};
+use sqlx::PgPool;
 use std::io::BufReader;
 use std::net::TcpListener;
 use std::thread;
 use std::{env, fs::File};
-use tokio;
 
 //  Create login endpoint (JWT) for users
 //  Create register endpoint for users

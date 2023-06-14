@@ -75,7 +75,7 @@ pub fn login_user(conn: &mut Client, user: &User) -> Result<(), Error> {
     // print!("pass {:?}", password_hash);
 
     // let password_hash = String::from(binding.as).unwrap();
-    let res = conn.query(
+    let _res = conn.query(
         "SELECT id FROM users WHERE email = $1 AND password = $2",
         &[&user.email, &password_hash],
     )?;
