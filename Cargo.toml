@@ -10,6 +10,7 @@ actix-rt = "2.8.0"
 actix-web = "4.3.1"
 argon2 = "0.5.0"
 clap = {features = ["derive"], version = "4.3.0"}
+config = "0.13.3"
 deadpool-postgres = "0.10.5"
 derive_more = "0.99.17"
 dotenv = "0.15.0"
@@ -25,6 +26,20 @@ serde_json = "1.0"
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
 tokio-pg-mapper = "0.2.0"
 tokio-postgres = "0.7.8"
+uuid = { version = "0.8.1", features = ["v4"] }
+chrono = "0.4.15"
+
+[dependencies.sqlx]
+version = "0.5.7"
+default-features = false
+features = [
+    "runtime-actix-rustls",
+    "macros",
+    "postgres",
+    "uuid",
+    "chrono",
+    "migrate"
+]
 
 [lib]
 path = "src/lib.rs"

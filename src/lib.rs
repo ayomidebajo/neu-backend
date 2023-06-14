@@ -1,12 +1,22 @@
 use actix_web::{dev::Server, web, App, HttpServer};
+use sqlx::PgPool;
 use std::net::TcpListener;
-pub mod controller;
+pub mod config;
 pub mod db;
 pub mod models;
+pub mod routes;
 
-pub fn run(listener: TcpListener) -> Result<Server, std::io::Error> {
-    let server = HttpServer::new(|| {
-        App::new().route("/health_check", web::get().to(controller::health_check)).route("/home", web::get().to(controller::home_page)).route("/sign_up", web::post().to(controller::sign_up))
+pub fn run(listener: TcpListener, connection: PgPool) -> Result<Server, std::io::Error> {
+    let connection = web::Data::new(connection);
+    let server = HttpServer::new(move || {
+        App::new()
+            .route(
+                "/health_check",
+                web::get().to(routes::health_check::health_check),
+            )
+            .route("/home", web::get().to(routes::home_page::home_page))
+            .route("/sign_up", web::post().to(routes::sign_up::sign_up))
+            .app_data(connection.clone())
     })
     .listen(listener)?
     .run();

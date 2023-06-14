@@ -1,28 +1,68 @@
+use dotenv::dotenv;
+use neu_backend::config::get_configuration;
+use neu_backend::config::DatabaseSettings;
 use neu_backend::models;
 use neu_backend::run;
 use reqwest;
+use sqlx::Executor;
+use sqlx::{Connection, PgConnection, PgPool};
 use std::net::TcpListener;
+use uuid::Uuid;
 
-fn spawn_app() -> String {
+pub struct TestApp {
+    pub address: String,
+    pub db_pool: PgPool,
+}
+
+async fn spawn_app() -> TestApp {
     let listener = TcpListener::bind("127.0.0.1:0").expect("Failed to bind random port");
     // We retrieve the port assigned to us by the OS
     let port = listener.local_addr().unwrap().port();
-    let server = run(listener).expect("Failed to bind address");
-    let _ = tokio::spawn(server);
     // We return the application address to the caller!
-    format!("http://127.0.0.1:{}", port)
+    let address = format!("http://127.0.0.1:{}", port);
+
+    let mut configuration = get_configuration().expect("Failed to read configuration.");
+    configuration.database.database_name = Uuid::new_v4().to_string();
+    let connection_pool = configure_database(&configuration.database).await;
+
+    let server = run(listener, connection_pool.clone()).expect("Failed to bind address");
+    let _ = tokio::spawn(server);
+    TestApp {
+        address,
+        db_pool: connection_pool,
+    }
+}
+
+pub async fn configure_database(config: &DatabaseSettings) -> PgPool {
+    // Create database
+    let mut connection = PgConnection::connect(&config.connection_string_without_db())
+        .await
+        .expect("Failed to connect to Postgres");
+    connection
+        .execute(format!(r#"CREATE DATABASE "{}";"#, config.database_name).as_str())
+        .await
+        .expect("Failed to create database.");
+    // Migrate database
+    let connection_pool = PgPool::connect(&config.connection_string())
+        .await
+        .expect("Failed to connect to Postgres.");
+    sqlx::migrate!("./migrations")
+        .run(&connection_pool)
+        .await
+        .expect("Failed to migrate the database");
+    connection_pool
 }
 
 #[actix_rt::test]
 async fn health_check_works() {
     // Arrange
-    let address = spawn_app();
+    let app = spawn_app().await;
     let client = reqwest::Client::new();
 
     // Act
     let response = client
         // Use the returned application address
-        .get(&format!("{}/health_check", &address))
+        .get(&format!("{}/health_check", &app.address))
         .send()
         .await
         .expect("Failed to execute request.");
@@ -35,13 +75,13 @@ async fn health_check_works() {
 #[actix_rt::test]
 async fn home_page_works() {
     // Arrange
-    let address = spawn_app();
+    let app = spawn_app().await;
     let client = reqwest::Client::new();
 
     // Act
     let response = client
         // Use the returned application address
-        .get(&format!("{}/home", &address))
+        .get(&format!("{}/home", &app.address))
         .send()
         .await
         .expect("Failed to execute request.");
@@ -54,12 +94,19 @@ async fn home_page_works() {
 #[actix_rt::test]
 async fn sign_up_works() {
     // ARRANGE
-    let address = spawn_app();
+    let app = spawn_app().await;
+    let configuration = get_configuration().expect("Failed to read configuration");
+    let connection_string = configuration.database.connection_string();
+
+    let mut connection = PgConnection::connect(&connection_string)
+        .await
+        .expect("Failed to connect to Postgres");
+
     let client = reqwest::Client::new();
     let cus = models::Customer {
         fname: "John".to_string(),
         lname: "Doe".to_string(),
-        email: "johndoe@gmail.com".to_string(),
+        email: "amanda@gmail.com".to_string(),
         password: "password".to_string(),
         phone_no: "08012345678".to_string(),
         is_merchant: false,
@@ -70,7 +117,7 @@ async fn sign_up_works() {
 
     // ACT
     let response = client
-        .post(&format!("{}/sign_up", address))
+        .post(&format!("{}/sign_up", app.address))
         .header("Content-Type", "application/json")
         .body(json_body)
         .send()
@@ -79,14 +126,22 @@ async fn sign_up_works() {
 
     // Assert
     assert!(response.status().is_success());
-
+    dbg!(response.status().as_u16());
     assert_eq!(200, response.status().as_u16());
+
+    dotenv().ok();
+
+    let saved = sqlx::query!("SELECT email FROM customers")
+        .fetch_one(&mut connection)
+        .await
+        .expect("Failed to fetch saved customer.");
+    assert_eq!(saved.email, "amanda@gmail.com");
 }
 
 #[actix_rt::test]
 async fn sign_up_fails_when_data_is_missing() {
     // Arrange
-    let address = spawn_app();
+    let app = spawn_app().await;
     let client = reqwest::Client::new();
 
     let cus = "{
@@ -96,7 +151,7 @@ async fn sign_up_fails_when_data_is_missing() {
     let json_body = serde_json::to_string(&cus).unwrap();
 
     let response = client
-        .post(&format!("{}/sign_up", address))
+        .post(&format!("{}/sign_up", app.address))
         .header("Content-Type", "application/json")
         .body(json_body)
         .send()

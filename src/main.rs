@@ -1,31 +1,23 @@
 pub mod db;
 pub mod error;
-pub mod controller;
 pub mod models;
-use std::net::TcpListener;
-use tokio;
+use clap::{Arg, Command};
 use dotenv::dotenv;
+use neu_backend::config::get_configuration;
+use neu_backend::run;
+use postgres::NoTls;
 use r2d2_postgres::PostgresConnectionManager;
 use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
 use serde_json::Value;
+use sqlx::{Connection, PgPool};
 use std::io::BufReader;
+use std::net::TcpListener;
 use std::thread;
 use std::{env, fs::File};
-use neu_backend::run;
-// Title: Rust Postgres
-use clap::{Arg, Command};
-use postgres::NoTls;
+use tokio;
 
 //  Create login endpoint (JWT) for users
-//  Create register endpoint
-//  Create logout endpoint
-// Create a forgot password endpoint
-// Create a reset password endpoint
-// Create a delete account endpoint
-// Create a verify email endpoint
-// Create a resend verification email endpoint
-
-
+//  Create register endpoint for users
 
 fn import() -> Result<(), failure::Error> {
     const CMD_CREATE_TABLE: &str = "create_table";
@@ -67,7 +59,7 @@ fn import() -> Result<(), failure::Error> {
         )
         .get_matches();
 
-    let addr = env::var("DB").expect("DB must be set");
+    let addr = env::var("DATABASE_URL").expect("DB must be set");
     let manager = PostgresConnectionManager::new(addr.parse().unwrap(), NoTls);
     let pool = r2d2::Pool::new(manager)?;
     let mut conn = pool.get()?;
@@ -85,7 +77,7 @@ fn import() -> Result<(), failure::Error> {
             let user = db::User::new("placeholder name".to_owned(), email, password);
             match db::login_user(&mut conn, &user) {
                 Ok(e) => println!("logging in user: {:?}", e),
-               Err(e) => println!("error logging in user {}", e),
+                Err(e) => println!("error logging in user {}", e),
             }
         }
         Some((CMD_LIST, _)) => {
@@ -130,7 +122,11 @@ fn import() -> Result<(), failure::Error> {
                         let name = item.0;
                         let email = item.1;
 
-                        let user = db::User::new(name.to_string(), email.to_string(), "password".to_string());
+                        let user = db::User::new(
+                            name.to_string(),
+                            email.to_string(),
+                            "password".to_string(),
+                        );
 
                         db::create_user(&mut conn, &user)
                     })
@@ -145,11 +141,9 @@ fn import() -> Result<(), failure::Error> {
     Ok(())
 }
 
-
 #[tokio::main]
 async fn main() -> std::io::Result<()> {
-
-     dotenv().ok();
+    dotenv().ok();
     // this thread is needed to run the blocking function `import` for importing the data into the db
     // Might change to use tokio::spawn_blocking instead
     thread::spawn(|| {
@@ -157,15 +151,16 @@ async fn main() -> std::io::Result<()> {
     })
     .join()
     .expect("thread errror");
-
+    let configuration = get_configuration().expect("Failed to read configuration.");
     let address = TcpListener::bind("127.0.0.1:0")?;
     let port = address.local_addr().unwrap().port();
 
     let random_addr = format!("http://127.0.0.1:{}", port);
     println!("listening on {}", random_addr);
 
-    run(address)?.await
+    let postgres_conn = PgPool::connect(&configuration.database.connection_string())
+        .await
+        .expect("Failed to connect to Postgres.");
+
+    run(address, postgres_conn)?.await
 }
-
-
-
