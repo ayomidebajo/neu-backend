@@ -13,12 +13,14 @@ use sqlx::PgPool;
 use std::io::BufReader;
 use std::net::TcpListener;
 use std::thread;
-use std::{env, fs::File};
+use std::{env, error as std_error, fs::File};
+
+use crate::error::MyError;
 
 //  Create login endpoint (JWT) for users
 //  Create register endpoint for users
 
-fn import() -> Result<(), failure::Error> {
+fn import() -> Result<(), impl std_error::Error> {
     const CMD_CREATE_TABLE: &str = "create_table";
     // const CMD_CREATE_MERCHANTS_TABLE: &str = "create_merchants_table";
     const CMD_ADD: &str = "add";
@@ -60,8 +62,8 @@ fn import() -> Result<(), failure::Error> {
 
     let addr = env::var("DATABASE_URL").expect("DB must be set");
     let manager = PostgresConnectionManager::new(addr.parse().unwrap(), NoTls);
-    let pool = r2d2::Pool::new(manager)?;
-    let mut conn = pool.get()?;
+    let pool = r2d2::Pool::new(manager).expect("error creating pool");
+    let mut conn = pool.get().expect("error creating connection");
 
     match matches.subcommand() {
         Some((CMD_CREATE_TABLE, _)) => {
@@ -100,7 +102,7 @@ fn import() -> Result<(), failure::Error> {
             let reader = BufReader::new(file);
 
             // Deserialize the JSON data
-            let data: Value = serde_json::from_reader(reader)?;
+            let data: Value = serde_json::from_reader(reader).expect("error reading json file");
 
             // Iterate through the JSON object
             if let Some(items) = data.as_array() {
@@ -137,7 +139,7 @@ fn import() -> Result<(), failure::Error> {
         _ => println!("no subcommand, will continue to run as a web server"),
     }
 
-    Ok(())
+    Ok::<(), crate::MyError>(())
 }
 
 #[tokio::main]
