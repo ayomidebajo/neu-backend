@@ -52,7 +52,6 @@ pub async fn configure_database(config: &DatabaseSettings) -> PgPool {
         .expect("Failed to migrate the database");
     connection_pool
 }
-
 #[actix_rt::test]
 async fn health_check_works() {
     // Arrange
@@ -71,6 +70,7 @@ async fn health_check_works() {
     assert!(response.status().is_success());
     assert_eq!(Some(0), response.content_length());
 }
+
 
 #[actix_rt::test]
 async fn home_page_works() {
@@ -91,8 +91,59 @@ async fn home_page_works() {
     assert_eq!(response.content_length().unwrap() > 0, true);
 }
 
+#[cfg(test)]
+#[cfg(feature = "dev")]
 #[actix_rt::test]
-async fn sign_up_works() {
+async fn sign_up_works_dev() {
+    // ARRANGE
+    let app = spawn_app().await;
+    let configuration = get_configuration().expect("Failed to read configuration");
+    let connection_string = configuration.database.connection_string();
+
+    let mut connection = PgConnection::connect(&connection_string)
+        .await
+        .expect("Failed to connect to Postgres");
+
+    let client = reqwest::Client::new();
+    let cus = models::Customer {
+        fname: "John".to_string(),
+        lname: "Doe".to_string(),
+        email: "amanda@gmail.com".to_string(),
+        password: "password".to_string(),
+        phone_no: "08012345678".to_string(),
+        is_merchant: false,
+        is_verified_user: false,
+    };
+
+    let json_body = serde_json::to_string(&cus).unwrap();
+
+    // ACT
+    let response = client
+        .post(&format!("{}/sign_up", app.address))
+        .header("Content-Type", "application/json")
+        .body(json_body)
+        .send()
+        .await
+        .expect("Failed to execute rewuest");
+
+    // Assert
+    assert!(response.status().is_success());
+    dbg!(response.status().as_u16());
+    assert_eq!(200, response.status().as_u16());
+
+    dotenv().ok();
+
+    let saved = sqlx::query!("SELECT email FROM customers")
+        .fetch_one(&mut connection)
+        .await
+        .expect("Failed to fetch saved customer.");
+    assert_eq!(saved.email, "amanda@gmail.com");
+}
+
+#[cfg(test)]
+#[cfg(feature = "prod")]
+#[actix_rt::test]
+async fn sign_up_works_prod() {
     // ARRANGE
     let app = spawn_app().await;
     let configuration = get_configuration().expect("Failed to read configuration");
