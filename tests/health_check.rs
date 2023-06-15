@@ -16,14 +16,12 @@ pub struct TestApp {
 
 async fn spawn_app() -> TestApp {
     let listener = TcpListener::bind("127.0.0.1:0").expect("Failed to bind random port");
-    // We retrieve the port assigned to us by the OS
     let port = listener.local_addr().unwrap().port();
     let address = format!("http://127.0.0.1:{}", port);
-
-    let mut configuration = get_configuration().expect("Failed to read configuration.");
-    configuration.database.database_name = Uuid::new_v4().to_string();
-    let connection_pool = configure_database(&configuration.database).await;
-
+    let configuration = get_configuration().expect("Failed to read configuration.");
+    let connection_pool = PgPool::connect(&configuration.database.connection_string())
+        .await
+        .expect("Failed to connect to Postgres.");
     let server = run(listener, connection_pool.clone()).expect("Failed to bind address");
     let _ = tokio::spawn(server);
     TestApp {
@@ -91,8 +89,8 @@ async fn home_page_works() {
     assert_eq!(response.content_length().unwrap() > 0, true);
 }
 
-// #[cfg(test)]
-// #[cfg(feature = "dev")]
+#[cfg(test)]
+#[cfg(feature = "dev")]
 #[actix_rt::test]
 async fn sign_up_works_dev() {
     // ARRANGE
