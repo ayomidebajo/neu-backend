@@ -1,7 +1,7 @@
-use dotenv::dotenv;
+// use dotenv::dotenv;
 use neu_backend::config::get_configuration;
 use neu_backend::config::DatabaseSettings;
-use neu_backend::models;
+// use neu_backend::models;
 use neu_backend::run;
 use reqwest;
 use sqlx::Executor;
@@ -71,7 +71,6 @@ async fn health_check_works() {
     assert_eq!(Some(0), response.content_length());
 }
 
-
 #[actix_rt::test]
 async fn home_page_works() {
     // Arrange
@@ -131,7 +130,7 @@ async fn sign_up_works_dev() {
     dbg!(response.status().as_u16());
     assert_eq!(200, response.status().as_u16());
 
-    dotenv().ok();
+    // dotenv().ok();
 
     let saved = sqlx::query!("SELECT email FROM customers")
         .fetch_one(&mut connection)
