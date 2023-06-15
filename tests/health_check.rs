@@ -1,7 +1,7 @@
-// use dotenv::dotenv;
+use dotenv::dotenv;
 use neu_backend::config::get_configuration;
 use neu_backend::config::DatabaseSettings;
-// use neu_backend::models;
+use neu_backend::models;
 use neu_backend::run;
 use reqwest;
 use sqlx::Executor;
@@ -18,7 +18,6 @@ async fn spawn_app() -> TestApp {
     let listener = TcpListener::bind("127.0.0.1:0").expect("Failed to bind random port");
     // We retrieve the port assigned to us by the OS
     let port = listener.local_addr().unwrap().port();
-    // We return the application address to the caller!
     let address = format!("http://127.0.0.1:{}", port);
 
     let mut configuration = get_configuration().expect("Failed to read configuration.");
@@ -39,9 +38,10 @@ pub async fn configure_database(config: &DatabaseSettings) -> PgPool {
         .await
         .expect("Failed to connect to Postgres");
     connection
-        .execute(format!(r#"CREATE DATABASE "{}";"#, config.database_name).as_str())
+        .execute(&*format!(r#"CREATE DATABASE "{}";"#, config.database_name))
         .await
         .expect("Failed to create database.");
+
     // Migrate database
     let connection_pool = PgPool::connect(&config.connection_string())
         .await
@@ -50,6 +50,7 @@ pub async fn configure_database(config: &DatabaseSettings) -> PgPool {
         .run(&connection_pool)
         .await
         .expect("Failed to migrate the database");
+
     connection_pool
 }
 #[actix_rt::test]
@@ -90,8 +91,8 @@ async fn home_page_works() {
     assert_eq!(response.content_length().unwrap() > 0, true);
 }
 
-#[cfg(test)]
-#[cfg(feature = "dev")]
+// #[cfg(test)]
+// #[cfg(feature = "dev")]
 #[actix_rt::test]
 async fn sign_up_works_dev() {
     // ARRANGE
@@ -139,8 +140,8 @@ async fn sign_up_works_dev() {
     assert_eq!(saved.email, "amanda@gmail.com");
 }
 
-#[cfg(test)]
-#[cfg(feature = "prod")]
+// #[cfg(test)]
+// #[cfg(feature = "prod")]
 #[actix_rt::test]
 async fn sign_up_works_prod() {
     // ARRANGE
