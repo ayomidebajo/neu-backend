@@ -8,22 +8,47 @@ use sqlx::Executor;
 use sqlx::{Connection, PgConnection, PgPool};
 use std::net::TcpListener;
 use uuid::Uuid;
+use production_spawn_server_test as prod_server;
 
 pub struct TestApp {
     pub address: String,
     pub db_pool: PgPool,
 }
 
+// #[cfg(any(dev))]
+// #[cfg(feature = "develop")]
+
+pub mod production_spawn_server_test {
+    use super::*;
+
+    pub(crate) async fn spawn_app() -> TestApp {
+        let listener = TcpListener::bind("127.0.0.1:0").expect("Failed to bind random port");
+        let port = listener.local_addr().unwrap().port();
+        let address = format!("http://127.0.0.1:{}", port);
+        let configuration = get_configuration().expect("Failed to read configuration.");
+        let connection_pool = PgPool::connect(&configuration.database.connection_string())
+            .await
+            .expect("Failed to connect to Postgres.");
+        let server = run(listener, connection_pool.clone()).expect("Failed to bind address");
+        let _ = tokio::spawn(server);
+        dbg!("running in develop feature");
+        TestApp {
+            address,
+            db_pool: connection_pool,
+        }
+    }
+}
+
 async fn spawn_app() -> TestApp {
     let listener = TcpListener::bind("127.0.0.1:0").expect("Failed to bind random port");
     let port = listener.local_addr().unwrap().port();
     let address = format!("http://127.0.0.1:{}", port);
-    let configuration = get_configuration().expect("Failed to read configuration.");
-    let connection_pool = PgPool::connect(&configuration.database.connection_string())
-        .await
-        .expect("Failed to connect to Postgres.");
+    let mut configuration = get_configuration().expect("Failed to read configuration.");
+    configuration.database.database_name = Uuid::new_v4().to_string();
+    let connection_pool = configure_database(&configuration.database).await;
     let server = run(listener, connection_pool.clone()).expect("Failed to bind address");
     let _ = tokio::spawn(server);
+    println!("running in here in spawn dev");
     TestApp {
         address,
         db_pool: connection_pool,
@@ -138,12 +163,12 @@ async fn sign_up_works_dev() {
     assert_eq!(saved.email, "amanda@gmail.com");
 }
 
-// #[cfg(test)]
-// #[cfg(feature = "prod")]
+#[cfg(test)]
+#[cfg(feature = "prod")]
 #[actix_rt::test]
 async fn sign_up_works_prod() {
     // ARRANGE
-    let app = spawn_app().await;
+    let app = prod_server::spawn_app().await;
     let configuration = get_configuration().expect("Failed to read configuration");
     let connection_string = configuration.database.connection_string();
 
