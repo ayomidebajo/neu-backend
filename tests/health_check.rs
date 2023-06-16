@@ -1,14 +1,12 @@
-use dotenv::dotenv;
 use neu_backend::config::get_configuration;
 use neu_backend::config::DatabaseSettings;
-use neu_backend::models;
+
 use neu_backend::run;
 use reqwest;
 use sqlx::Executor;
 use sqlx::{Connection, PgConnection, PgPool};
 use std::net::TcpListener;
 use uuid::Uuid;
-use production_spawn_server_test as prod_server;
 
 pub struct TestApp {
     pub address: String,
@@ -21,6 +19,7 @@ pub struct TestApp {
 pub mod production_spawn_server_test {
     use super::*;
 
+    #[allow(unused)]
     pub(crate) async fn spawn_app() -> TestApp {
         let listener = TcpListener::bind("127.0.0.1:0").expect("Failed to bind random port");
         let port = listener.local_addr().unwrap().port();
@@ -118,6 +117,8 @@ async fn home_page_works() {
 #[cfg(feature = "dev")]
 #[actix_rt::test]
 async fn sign_up_works_dev() {
+    use dotenv::dotenv;
+    use neu_backend::models;
     // ARRANGE
     let app = spawn_app().await;
     let configuration = get_configuration().expect("Failed to read configuration");
@@ -167,8 +168,10 @@ async fn sign_up_works_dev() {
 #[cfg(feature = "prod")]
 #[actix_rt::test]
 async fn sign_up_works_prod() {
+    use dotenv::dotenv;
+    use neu_backend::models;
     // ARRANGE
-    let app = prod_server::spawn_app().await;
+    let app = production_spawn_server_test::spawn_app().await;
     let configuration = get_configuration().expect("Failed to read configuration");
     let connection_string = configuration.database.connection_string();
 
