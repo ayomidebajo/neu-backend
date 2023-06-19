@@ -234,11 +234,11 @@ async fn sign_up_works_dev() {
 }
 
 #[cfg(test)]
-#[cfg(feature = "prod")]
+// #[cfg(feature = "prod")]
 #[actix_rt::test]
 async fn sign_up_works_prod() {
     use dotenv::dotenv;
-    use neu_backend::models;
+    use neu_backend::models::{self, LoginUser};
     // ARRANGE
     let app = production_spawn_server_test::spawn_app().await;
     let configuration = get_configuration().expect("Failed to read configuration");
@@ -277,12 +277,12 @@ async fn sign_up_works_prod() {
 
     dotenv().ok();
 
-    let saved = sqlx::query!("SELECT email FROM customers")
-        .fetch_all(&mut connection)
+    let saved = sqlx::query_as::<_, LoginUser>("SELECT email, password FROM customers WHERE email = $1").bind(cus.email.to_string())
+        .fetch_optional(&mut connection)
         .await
         .expect("Failed to fetch saved customer.");
-    dbg!("{:?}", saved);
-    assert_eq!(saved.email, "ade@gmail.com");
+    dbg!("{:?}", saved.clone());
+    assert_eq!(saved.expect("No emailo").email, "ade@gmail.com");
 }
 
 #[actix_rt::test]

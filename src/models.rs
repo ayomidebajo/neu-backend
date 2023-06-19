@@ -18,7 +18,7 @@ pub struct TestStruct {
     pub password: String,
 }
 
-#[derive(Deserialize, Serialize, Debug, sqlx::FromRow)]
+#[derive(Deserialize, Serialize, Clone, Debug, sqlx::FromRow)]
 pub struct LoginUser {
     pub email: String,
     pub password: String,
