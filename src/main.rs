@@ -1,6 +1,8 @@
 pub mod db;
 pub mod error;
 pub mod models;
+pub mod helpers;
+pub mod routes;
 use clap::{Arg, Command};
 use dotenv::dotenv;
 use neu_backend::config::get_configuration;

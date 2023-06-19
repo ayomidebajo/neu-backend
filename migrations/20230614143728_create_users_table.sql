@@ -17,7 +17,7 @@ CREATE TABLE customers(
    fname TEXT NOT NULL,
    lname TEXT NOT NULL,
    phone_no TEXT,
-   password TEXT NOT NULL,
+   password VARCHAR NOT NULL,
    created_at timestamptz NOT NULL,
    is_merchant BOOLEAN NOT NULL,
    is_verified BOOLEAN NOT NULL

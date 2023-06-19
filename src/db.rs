@@ -1,9 +1,11 @@
-use argon2::{
-    password_hash::{rand_core::OsRng, PasswordHasher, SaltString},
-    Argon2,
-};
 use postgres::{Client, Error};
 use serde_derive::{Deserialize, Serialize};
+
+// use crate::routes::login::{hash_password, verify_password};
+
+use crate::helpers::pass_helpers::{hash_password, verify_password};
+
+// use neu_backend::routes::login::{hash_password, verify_password};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct User {
@@ -49,16 +51,19 @@ pub fn _create_merchant(conn: &mut Client) -> Result<(), Error> {
 }
 
 pub fn create_user(conn: &mut Client, user: &User) -> Result<(), Error> {
-    let salt = SaltString::generate(&mut OsRng);
-    let password_hash = Argon2::default()
-        .hash_password(user.password.as_bytes(), &salt)
-        .expect("Unable to hash password.")
-        .to_string();
+    let hashed_password = match hash_password(&user.password) {
+        Ok(hashed) => Some(hashed),
+        Err(err) => {
+            println!("Error hashing password: {}", err);
+            // return;
+            None
+        }
+    };
 
     // print!("pass {:?}", password_hash);
     conn.execute(
         "INSERT INTO users (email, password) VALUES ($1, $2)",
-        &[&user.email, &password_hash],
+        &[&user.email, &hashed_password],
     )
     .map(drop)
 
@@ -66,19 +71,17 @@ pub fn create_user(conn: &mut Client, user: &User) -> Result<(), Error> {
 }
 
 pub fn login_user(conn: &mut Client, user: &User) -> Result<(), Error> {
-    let salt = SaltString::generate(&mut OsRng);
-    let password_hash = Argon2::default()
-        .hash_password(user.password.as_bytes(), &salt)
-        .expect("Unable to hash password.")
-        .to_string();
+    let user_row = conn.query(
+        "SELECT email, password FROM users WHERE email = $1",
+        &[&user.email],
+    )?;
 
-    // print!("pass {:?}", password_hash);
+    let user_pass: String = user_row[0].get("password");
+
+    let is_valid = verify_password(&user.password, &user_pass);
+    print!("pass {:?}", is_valid);
 
     // let password_hash = String::from(binding.as).unwrap();
-    let _res = conn.query(
-        "SELECT id FROM users WHERE email = $1 AND password = $2",
-        &[&user.email, &password_hash],
-    )?;
 
     Ok(())
 }

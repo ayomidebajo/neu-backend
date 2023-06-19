@@ -5,6 +5,7 @@ pub mod config;
 pub mod db;
 pub mod models;
 pub mod routes;
+pub mod helpers;
 
 pub fn run(listener: TcpListener, connection: PgPool) -> Result<Server, std::io::Error> {
     let connection = web::Data::new(connection);
@@ -16,6 +17,7 @@ pub fn run(listener: TcpListener, connection: PgPool) -> Result<Server, std::io:
             )
             .route("/home", web::get().to(routes::home_page::home_page))
             .route("/sign_up", web::post().to(routes::sign_up::sign_up))
+            .route("/login", web::post().to(routes::login::login))
             .app_data(connection.clone())
     })
     .listen(listener)?

@@ -4,9 +4,23 @@ use chrono::Utc;
 use sqlx::PgPool;
 use uuid::Uuid;
 
+use crate::helpers::pass_helpers::hash_password;
+
 // ADD HASHING POWER
 
 pub async fn sign_up(req: web::Json<Customer>, connection: web::Data<PgPool>) -> HttpResponse {
+    // let password = &req.password;
+    // let password_hash = bcrypt::hash(password).unwrap();
+
+    let hashed_password = match hash_password(&req.password) {
+        Ok(hashed) => Some(hashed),
+        Err(err) => {
+            println!("Error hashing password: {}", err);
+            // return;
+            None
+        }
+    };
+
     match sqlx::query!(
         r#"
 INSERT INTO customers (id, email, fname, lname, is_merchant, password, is_verified, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
@@ -16,7 +30,7 @@ INSERT INTO customers (id, email, fname, lname, is_merchant, password, is_verifi
         req.fname,
         req.lname,
         req.is_merchant,
-        req.password,
+        hashed_password,
         req.is_verified_user,
         Utc::now()
     )

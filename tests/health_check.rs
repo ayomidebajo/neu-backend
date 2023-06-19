@@ -13,9 +13,6 @@ pub struct TestApp {
     pub db_pool: PgPool,
 }
 
-// #[cfg(any(dev))]
-// #[cfg(feature = "develop")]
-
 pub mod production_spawn_server_test {
     use super::*;
 
@@ -78,9 +75,9 @@ pub async fn configure_database(config: &DatabaseSettings) -> PgPool {
 #[actix_rt::test]
 async fn health_check_works() {
     // Arrange
+
     let app = spawn_app().await;
     let client = reqwest::Client::new();
-
     // Act
     let response = client
         // Use the returned application address
@@ -111,6 +108,69 @@ async fn home_page_works() {
     // Assert
     assert!(response.status().is_success());
     assert_eq!(response.content_length().unwrap() > 0, true);
+}
+
+// #[cfg(test)]
+// #[cfg(feature = "dev")]
+#[actix_rt::test]
+async fn login_works() {
+    // use dotenv::dotenv;
+    use neu_backend::models;
+
+    let app = spawn_app().await;
+    let configuration = get_configuration().expect("Failed to read configuration");
+    let connection_string = configuration.database.connection_string();
+
+    let _connection = PgConnection::connect(&connection_string)
+        .await
+        .expect("Failed to connect to Postgres");
+
+    let client = reqwest::Client::new();
+
+    let cus = models::Customer {
+        fname: "John".to_string(),
+        lname: "Doe".to_string(),
+        email: "amanda@gmail.com".to_string(),
+        password: "password".to_string(),
+        phone_no: "08012345678".to_string(),
+        is_merchant: false,
+        is_verified_user: false,
+    };
+
+    let json_body = serde_json::to_string(&cus).unwrap();
+
+    // ACT
+    let response = client
+        .post(&format!("{}/sign_up", app.address))
+        .header("Content-Type", "application/json")
+        .body(json_body)
+        .send()
+        .await
+        .expect("Failed to execute rewuest");
+
+    // Assert
+    assert!(response.status().is_success());
+    dbg!(response.status().as_u16());
+    assert_eq!(200, response.status().as_u16());
+
+    let login_details = models::LoginUser {
+        email: "ada@gmail.com".to_string(),
+        password: "password".to_string(),
+    };
+
+    let json_body = serde_json::to_string(&login_details).unwrap();
+
+    let response = client
+        .post(&format!("{}/login", app.address))
+        .header("Content-Type", "application/json")
+        .body(json_body)
+        .send()
+        .await
+        .expect("Failed to execute rewuest");
+
+    //  assert!(response.status().is_success());
+    dbg!(response.status().as_u16());
+    assert_eq!(200, response.status().as_u16());
 }
 
 #[cfg(test)]
@@ -157,11 +217,16 @@ async fn sign_up_works_dev() {
 
     // dotenv().ok();
 
-    let saved = sqlx::query!("SELECT email FROM customers")
+    let saved = sqlx::query!("SELECT id, email FROM customers WHERE email = $1")
+        .bind("ada@gmail.com".to_string())
         .fetch_one(&mut connection)
         .await
         .expect("Failed to fetch saved customer.");
-    assert_eq!(saved.email, "amanda@gmail.com");
+    dbg!("saved {:?}", saved);
+
+    assert_eq!(1, 2);
+
+    // assert_eq!(saved.email, "amanda@gmail.com");
 }
 
 #[cfg(test)]
@@ -183,7 +248,7 @@ async fn sign_up_works_prod() {
     let cus = models::Customer {
         fname: "John".to_string(),
         lname: "Doe".to_string(),
-        email: "amanda@gmail.com".to_string(),
+        email: "ade@gmail.com".to_string(),
         password: "password".to_string(),
         phone_no: "08012345678".to_string(),
         is_merchant: false,
@@ -209,10 +274,11 @@ async fn sign_up_works_prod() {
     dotenv().ok();
 
     let saved = sqlx::query!("SELECT email FROM customers")
-        .fetch_one(&mut connection)
+        .fetch_all(&mut connection)
         .await
         .expect("Failed to fetch saved customer.");
-    assert_eq!(saved.email, "amanda@gmail.com");
+    dbg!("{:?}", saved);
+    assert_eq!(saved.email, "ade@gmail.com");
 }
 
 #[actix_rt::test]

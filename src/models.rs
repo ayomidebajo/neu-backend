@@ -1,3 +1,5 @@
+use sqlx;
+
 use serde_derive::{Deserialize, Serialize};
 #[derive(Deserialize, Serialize, Debug)]
 
@@ -9,7 +11,17 @@ pub struct Customer {
     pub password: String,
     pub is_merchant: bool,
     pub is_verified_user: bool,
-    // pub created_at: DateTime<Utc>
+}
+#[derive(Deserialize, Serialize, Debug, Clone, sqlx::FromRow)]
+pub struct TestStruct {
+    pub email: String,
+    pub password: String,
+}
+
+#[derive(Deserialize, Serialize, Debug, sqlx::FromRow)]
+pub struct LoginUser {
+    pub email: String,
+    pub password: String,
 }
 
 #[derive(Deserialize, Serialize, Debug)]
