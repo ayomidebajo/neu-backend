@@ -1,7 +1,6 @@
 use bcrypt::{hash, verify, DEFAULT_COST};
 
 pub fn hash_password(password: &str) -> Result<String, bcrypt::BcryptError> {
-
     // Hash the password using the generated salt
     let hashed_password = hash(password, DEFAULT_COST)?;
 

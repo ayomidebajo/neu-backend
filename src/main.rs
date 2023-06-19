@@ -1,7 +1,7 @@
 pub mod db;
 pub mod error;
-pub mod models;
 pub mod helpers;
+pub mod models;
 pub mod routes;
 use clap::{Arg, Command};
 use dotenv::dotenv;

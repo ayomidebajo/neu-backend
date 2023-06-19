@@ -3,9 +3,9 @@ use sqlx::PgPool;
 use std::net::TcpListener;
 pub mod config;
 pub mod db;
+pub mod helpers;
 pub mod models;
 pub mod routes;
-pub mod helpers;
 
 pub fn run(listener: TcpListener, connection: PgPool) -> Result<Server, std::io::Error> {
     let connection = web::Data::new(connection);
