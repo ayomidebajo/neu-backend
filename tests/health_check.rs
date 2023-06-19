@@ -174,7 +174,7 @@ async fn login_works() {
 }
 
 #[cfg(test)]
-// #[cfg(feature = "dev")]
+#[cfg(feature = "dev")]
 #[actix_rt::test]
 async fn sign_up_works_dev() {
     use dotenv::dotenv;
@@ -219,7 +219,7 @@ async fn sign_up_works_dev() {
 
     let saved =
         sqlx::query_as::<_, LoginUser>("select email, password from customers WHERE email = $1")
-            .bind("ala@gmail.com".to_string())
+            .bind(cus.email.to_string())
             .fetch_optional(&mut connection)
             .await
             .expect("Failed to fetch saved customer.");
@@ -277,10 +277,12 @@ async fn sign_up_works_prod() {
 
     dotenv().ok();
 
-    let saved = sqlx::query_as::<_, LoginUser>("SELECT email, password FROM customers WHERE email = $1").bind(cus.email.to_string())
-        .fetch_optional(&mut connection)
-        .await
-        .expect("Failed to fetch saved customer.");
+    let saved =
+        sqlx::query_as::<_, LoginUser>("SELECT email, password FROM customers WHERE email = $1")
+            .bind(cus.email.to_string())
+            .fetch_optional(&mut connection)
+            .await
+            .expect("Failed to fetch saved customer.");
     dbg!("{:?}", saved.clone());
     assert_eq!(saved.expect("No emailo").email, "ade@gmail.com");
 }
