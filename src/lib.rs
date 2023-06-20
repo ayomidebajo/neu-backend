@@ -5,12 +5,14 @@ pub mod config;
 pub mod db;
 pub mod helpers;
 pub mod models;
+use tracing_actix_web::TracingLogger;
 pub mod routes;
 
 pub fn run(listener: TcpListener, connection: PgPool) -> Result<Server, std::io::Error> {
     let connection = web::Data::new(connection);
     let server = HttpServer::new(move || {
         App::new()
+            .wrap(TracingLogger::default())
             .route(
                 "/health_check",
                 web::get().to(routes::health_check::health_check),

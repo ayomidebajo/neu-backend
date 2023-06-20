@@ -5,6 +5,7 @@ pub mod models;
 pub mod routes;
 use clap::{Arg, Command};
 use dotenv::dotenv;
+use env_logger::Env;
 use neu_backend::config::get_configuration;
 use neu_backend::run;
 use postgres::NoTls;
@@ -164,6 +165,8 @@ async fn main() -> std::io::Result<()> {
     let postgres_conn = PgPool::connect(&configuration.database.connection_string())
         .await
         .expect("Failed to connect to Postgres.");
+
+    env_logger::Builder::from_env(Env::default().default_filter_or("info")).init();
 
     run(address, postgres_conn)?.await
 }

@@ -20,7 +20,19 @@ pub async fn sign_up(req: web::Json<Customer>, connection: web::Data<PgPool>) ->
             None
         }
     };
+    tracing::info!("Creating a new user account!");
 
+    let request_id = Uuid::new_v4();
+    tracing::info!(
+        "request_id {} - Adding '{}' '{}' as a new customer.",
+        request_id,
+        req.email,
+        req.fname
+    );
+    tracing::info!(
+        "request_id {} - Saving new subscriber details in the database",
+        request_id
+    );
     match sqlx::query!(
         r#"
 INSERT INTO customers (id, email, fname, lname, is_merchant, password, is_verified, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
@@ -40,10 +52,17 @@ INSERT INTO customers (id, email, fname, lname, is_merchant, password, is_verifi
     .await
     {
         Ok(_) => {
+            tracing::info!(
+            "request_id {} - New customer details have been saved", request_id
+            );
             HttpResponse::Ok().finish()
         }
         Err(e) => {
-            println!("Failed to execute query: {}", e);
+            tracing::error!(
+            "request_id {} - Failed to execute query: {:?}",
+            request_id,
+            e
+            );
             HttpResponse::InternalServerError().finish()
         }
     }
