@@ -4,7 +4,6 @@ pub mod helpers;
 pub mod models;
 pub mod routes;
 use clap::{Arg, Command};
-use dotenv::dotenv;
 use env_logger::Env;
 use neu_backend::config::get_configuration;
 use neu_backend::run;
@@ -147,14 +146,16 @@ fn import() -> Result<(), impl std_error::Error> {
 
 #[tokio::main]
 async fn main() -> std::io::Result<()> {
-    dotenv().ok();
+    // dotenv().ok();
     // this thread is needed to run the blocking function `import` for importing the data into the db
     // Might change to use tokio::spawn_blocking instead
-    thread::spawn(|| {
-        import().expect("expected a command at least");
-    })
-    .join()
-    .expect("thread errror");
+    // thread::spawn(|| {
+    //     import().expect("expected a command at least");
+    // })
+    // .join()
+    // .expect("thread errror");
+
+    env_logger::Builder::from_env(Env::default().default_filter_or("info")).init();
     let configuration = get_configuration().expect("Failed to read configuration.");
     let address = TcpListener::bind("127.0.0.1:0")?;
     let port = address.local_addr().unwrap().port();
@@ -165,8 +166,6 @@ async fn main() -> std::io::Result<()> {
     let postgres_conn = PgPool::connect(&configuration.database.connection_string())
         .await
         .expect("Failed to connect to Postgres.");
-
-    env_logger::Builder::from_env(Env::default().default_filter_or("info")).init();
 
     run(address, postgres_conn)?.await
 }
