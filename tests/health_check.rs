@@ -177,7 +177,7 @@ async fn login_works() {
 #[cfg(feature = "dev")]
 #[actix_rt::test]
 async fn sign_up_works_dev() {
-    use dotenv::dotenv;
+    // use dotenv::dotenv;
     use neu_backend::models::{self, LoginUser};
     // ARRANGE
     let app = spawn_app().await;
@@ -237,7 +237,7 @@ async fn sign_up_works_dev() {
 #[cfg(feature = "prod")]
 #[actix_rt::test]
 async fn sign_up_works_prod() {
-    use dotenv::dotenv;
+    // use dotenv::dotenv;
     use neu_backend::models::{self, LoginUser};
     // ARRANGE
     let app = production_spawn_server_test::spawn_app().await;
