@@ -275,7 +275,7 @@ async fn sign_up_works_prod() {
     dbg!(response.status().as_u16());
     assert_eq!(200, response.status().as_u16());
 
-    dotenv().ok();
+    // dotenv().ok();
 
     let saved =
         sqlx::query_as::<_, LoginUser>("SELECT email, password FROM customers WHERE email = $1")
