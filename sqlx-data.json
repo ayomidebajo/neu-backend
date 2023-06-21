@@ -1,0 +1,22 @@
+{
+  "db": "PostgreSQL",
+  "2987571de198bf39c3f1e8288484429c4ede24bb2bdaf29f20563f45011941ca": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Uuid",
+          "Text",
+          "Text",
+          "Text",
+          "Bool",
+          "Varchar",
+          "Bool",
+          "Timestamptz"
+        ]
+      }
+    },
+    "query": "\nINSERT INTO customers (id, email, fname, lname, is_merchant, password, is_verified, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)\n"
+  }
+}
