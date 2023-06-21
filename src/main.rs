@@ -14,7 +14,7 @@ use serde_json::Value;
 use sqlx::PgPool;
 use std::io::BufReader;
 use std::net::TcpListener;
-use std::thread;
+// use std::thread;
 use std::{env, error as std_error, fs::File};
 
 use crate::error::MyError;
@@ -22,7 +22,7 @@ use crate::error::MyError;
 //  Create login endpoint (JWT) for users
 //  Create register endpoint for users
 
-fn import() -> Result<(), impl std_error::Error> {
+fn _import() -> Result<(), impl std_error::Error> {
     const CMD_CREATE_TABLE: &str = "create_table";
     // const CMD_CREATE_MERCHANTS_TABLE: &str = "create_merchants_table";
     const CMD_ADD: &str = "add";
