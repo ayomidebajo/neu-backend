@@ -12,7 +12,7 @@ ENV SQLX_OFFLINE true
 # We'll use the release profile to make it faaaast
 RUN cargo build --release
 # When `docker run` is executed, launch the binary!
-ENTRYPOINT ["./target/release/neu_backend"]
+ENTRYPOINT ["./target/release/neu-backend"]
 # Build a docker image tagged as "neu_backend" according to the recipe
 # specified in `Dockerfile`
 # docker build --tag neu_backend --file Dockerfile .
