@@ -1,5 +1,6 @@
 # We use the latest Rust stable release as base image
-FROM rust:1.68.0
+#builder stage
+FROM rust:1.68.0 as builder
 # Let's switch our working directory to `app` (equivalent to `cd app`)
 # The `app` folder will be created for us by Docker in case it does not
 # exist already.
@@ -13,7 +14,19 @@ ENV APP_ENVIRONMENT production
 # Let's build our binary!
 # We'll use the release profile to make it faaaast
 RUN cargo build --release
-# When `docker run` is executed, launch the binary!
+# Runtime stage
+FROM debian:bullseye-slim AS runtime
+WORKDIR /app
+# Install OpenSSL - it is dynamically linked by some of our dependencies
+RUN apt-get update -y \
+	&& apt-get install -y --no-install-recommends openssl \
+	# Clean up
+	&& apt-get autoremove -y \
+	&& apt-get clean -y \
+	&& rm -rf /var/lib/apt/lists/*
+COPY --from=builder /app/target/release/neu-backend neu-backend
+COPY configuration configuration
+ENV APP_ENVIRONMENT production
 ENTRYPOINT ["./target/release/neu-backend"]
 # Build a docker image tagged as "neu_backend" according to the recipe
 # specified in `Dockerfile`

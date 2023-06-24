@@ -24,10 +24,7 @@ async fn main() -> std::io::Result<()> {
     let random_addr = format!("http://127.0.0.1:{}", port);
 
     println!("listening on {}", random_addr);
-    println!(
-        "connection string {:?}",
-        &configuration.database.connection_string()
-    );
+    println!("connection string {:?}", &configuration.database.connection_string());
 
     let postgres_conn = PgPool::connect_lazy(&configuration.database.connection_string())
         .expect("Failed to connect to Postgres.");
