@@ -8,6 +8,8 @@ WORKDIR /app
 COPY . .
 # Force sqlx to load from the offline cache
 ENV SQLX_OFFLINE true
+# Set the environment to production
+ENV APP_ENVIRONMENT production
 # Let's build our binary!
 # We'll use the release profile to make it faaaast
 RUN cargo build --release

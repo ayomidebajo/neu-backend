@@ -10,7 +10,6 @@ actix-rt = "2.8.0"
 actix-web = "4.3.1"
 bcrypt = "0.14.0"
 chrono = { version = "0.4.26", default-features = false, features = ["clock"] }
-clap = {features = ["derive"], version = "4.3.0"}
 config = "0.13.3"
 derive_more = "0.99.17"
 env_logger = "0.10.0"
