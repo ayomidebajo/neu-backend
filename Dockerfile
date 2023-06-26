@@ -17,6 +17,7 @@ ENV APP_ENVIRONMENT production
 # Let's build our binary!
 RUN cargo build --release --bin neu-backend
 
+
 # Runtime stage
 FROM debian:bullseye-slim AS runtime
 WORKDIR /app

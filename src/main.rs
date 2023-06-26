@@ -6,7 +6,7 @@ pub mod routes;
 use env_logger::Env;
 use neu_backend::config::get_configuration;
 use neu_backend::run;
-use sqlx::PgPool;
+use sqlx::postgres::PgPoolOptions;
 use std::net::TcpListener;
 
 #[tokio::main]
@@ -24,13 +24,14 @@ async fn main() -> std::io::Result<()> {
     let random_addr = format!("http://127.0.0.1:{}", port);
 
     println!("listening on {}", random_addr);
-    println!(
-        "connection string {:?}",
-        &configuration.database.connection_string()
-    );
+    // println!(
+    //     "connection string {:?}",
+    //     &configuration.database.connection_string()
+    // );
 
-    let postgres_conn = PgPool::connect_lazy(&configuration.database.connection_string())
-        .expect("Failed to connect to Postgres.");
+    let connection_pool = PgPoolOptions::new()
+        .connect_timeout(std::time::Duration::from_secs(2))
+        .connect_lazy_with(configuration.database.with_db());
 
-    run(listener, postgres_conn)?.await
+    run(listener, connection_pool)?.await
 }

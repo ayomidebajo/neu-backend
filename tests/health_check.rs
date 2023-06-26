@@ -14,6 +14,8 @@ pub struct TestApp {
 }
 
 pub mod production_spawn_server_test {
+    use sqlx::postgres::PgPoolOptions;
+
     use super::*;
 
     #[allow(unused)]
@@ -22,9 +24,9 @@ pub mod production_spawn_server_test {
         let port = listener.local_addr().unwrap().port();
         let address = format!("http://127.0.0.1:{}", port);
         let configuration = get_configuration().expect("Failed to read configuration.");
-        let connection_pool = PgPool::connect(&configuration.database.connection_string())
-            .await
-            .expect("Failed to connect to Postgres.");
+        let connection_pool = PgPoolOptions::new()
+            .connect_timeout(std::time::Duration::from_secs(2))
+            .connect_lazy_with(configuration.database.with_db());
         let server = run(listener, connection_pool.clone()).expect("Failed to bind address");
         let _ = tokio::spawn(server);
         dbg!("running in develop feature");
@@ -53,16 +55,16 @@ async fn spawn_app() -> TestApp {
 
 pub async fn configure_database(config: &DatabaseSettings) -> PgPool {
     // Create database
-    let mut connection = PgConnection::connect(&config.connection_string_without_db())
+    let mut connection = PgConnection::connect_with(&config.without_db())
         .await
         .expect("Failed to connect to Postgres");
     connection
-        .execute(&*format!(r#"CREATE DATABASE "{}";"#, config.database_name))
+        .execute(format!(r#"CREATE DATABASE "{}";"#, config.database_name).as_str())
         .await
         .expect("Failed to create database.");
 
     // Migrate database
-    let connection_pool = PgPool::connect(&config.connection_string())
+    let connection_pool = PgPool::connect_with(config.with_db())
         .await
         .expect("Failed to connect to Postgres.");
     sqlx::migrate!("./migrations")
@@ -118,12 +120,6 @@ async fn login_works() {
     use neu_backend::models;
 
     let app = spawn_app().await;
-    let configuration = get_configuration().expect("Failed to read configuration");
-    let connection_string = configuration.database.connection_string();
-
-    let _connection = PgConnection::connect(&connection_string)
-        .await
-        .expect("Failed to connect to Postgres");
 
     let client = reqwest::Client::new();
 
@@ -181,14 +177,8 @@ async fn sign_up_works_dev() {
     use neu_backend::models::{self, LoginUser};
     // ARRANGE
     let app = spawn_app().await;
-    let configuration = get_configuration().expect("Failed to read configuration");
-    let connection_string = configuration.database.connection_string();
-
-    let mut connection = PgConnection::connect(&connection_string)
-        .await
-        .expect("Failed to connect to Postgres");
-
     let client = reqwest::Client::new();
+
     let cus = models::Customer {
         fname: "John".to_string(),
         lname: "Doe".to_string(),
@@ -214,13 +204,10 @@ async fn sign_up_works_dev() {
     assert!(response.status().is_success());
     dbg!(response.status().as_u16());
     assert_eq!(200, response.status().as_u16());
-
-    dotenv().ok();
-
     let saved =
         sqlx::query_as::<_, LoginUser>("select email, password from customers WHERE email = $1")
             .bind(cus.email.to_string())
-            .fetch_optional(&mut connection)
+            .fetch_optional(&app.db_pool)
             .await
             .expect("Failed to fetch saved customer.");
 
@@ -241,14 +228,8 @@ async fn sign_up_works_prod() {
     use neu_backend::models::{self, LoginUser};
     // ARRANGE
     let app = production_spawn_server_test::spawn_app().await;
-    let configuration = get_configuration().expect("Failed to read configuration");
-    let connection_string = configuration.database.connection_string();
-
-    let mut connection = PgConnection::connect(&connection_string)
-        .await
-        .expect("Failed to connect to Postgres");
-
     let client = reqwest::Client::new();
+
     let cus = models::Customer {
         fname: "John".to_string(),
         lname: "Doe".to_string(),
