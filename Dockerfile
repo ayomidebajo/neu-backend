@@ -30,7 +30,7 @@ RUN apt-get update -y \
 COPY --from=builder /app/target/release/neu-backend neu-backend
 COPY configuration configuration
 ENV APP_ENVIRONMENT production
-ENTRYPOINT ["./target/release/neu-backend"]
+ENTRYPOINT ["./neu-backend"]
 # Build a docker image tagged as "neu_backend" according to the recipe
 # specified in `Dockerfile`
 # docker build --tag neu_backend --file Dockerfile .
