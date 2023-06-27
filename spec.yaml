@@ -9,6 +9,22 @@ name: neu-backend
 region: fra
 services:
   - name: neu-backend
+    envs:
+      - key: APP_DATABASE__USERNAME
+        scope: RUN_TIME
+        value: ${neudb.USERNAME}
+      - key: APP_DATABASE__PASSWORD
+        scope: RUN_TIME
+        value: ${neudb.PASSWORD}
+      - key: APP_DATABASE__HOST
+        scope: RUN_TIME
+        value: ${neudb.HOSTNAME}
+      - key: APP_DATABASE__PORT
+        scope: RUN_TIME
+        value: ${neudb.PORT}
+      - key: APP_DATABASE__DATABASE_NAME
+        scope: RUN_TIME
+        value: ${neudb.DATABASE}
     # Relative to the repository root
     dockerfile_path: Dockerfile
     source_dir: .
