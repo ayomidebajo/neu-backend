@@ -43,7 +43,7 @@ pub async fn sign_up(req: web::Json<Customer>, connection: web::Data<PgPool>) ->
         );
         println!("Email already exists {:?}", email);
         return HttpResponse::Conflict().finish();
-    } 
+    }
 
     tracing::info!(
         "request_id {} - Saving new subscriber details in the database",
