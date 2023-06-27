@@ -224,7 +224,7 @@ async fn sign_up_works_dev() {
 }
 
 #[cfg(test)]
-// #[cfg(feature = "prod")]
+#[cfg(feature = "prod")]
 #[actix_rt::test]
 async fn sign_up_works_prod() {
     // use dotenv::dotenv;
