@@ -31,7 +31,7 @@ async fn main() -> std::io::Result<()> {
 
     let connection_pool = PgPoolOptions::new()
         .connect_timeout(std::time::Duration::from_secs(5))
-        .connect_lazy_with(configuration.database.with_db());
+        .connect_lazy(&configuration.database.with_db()).expect("Failed to create connection to pool");
 
     run(listener, connection_pool)?.await
 }

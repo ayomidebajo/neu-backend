@@ -45,8 +45,9 @@ impl DatabaseSettings {
             .ssl_mode(ssl_mode)
     }
     // Renamed from `connection_string`
-    pub fn with_db(&self) -> PgConnectOptions {
-        self.without_db().database(&self.database_name)
+    pub fn with_db(&self) -> String {
+        // self.without_db().database(&self.database_name)
+        self.database_name.to_owned()
     }
 }
 

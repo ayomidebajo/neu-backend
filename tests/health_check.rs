@@ -8,6 +8,7 @@ use sqlx::{Connection, PgConnection, PgPool};
 use std::net::TcpListener;
 use uuid::Uuid;
 
+#[derive(Clone, Debug)]
 pub struct TestApp {
     pub address: String,
     pub db_pool: PgPool,
@@ -26,13 +27,14 @@ pub mod production_spawn_server_test {
         let configuration = get_configuration().expect("Failed to read configuration.");
         let connection_pool = PgPoolOptions::new()
             .connect_timeout(std::time::Duration::from_secs(2))
-            .connect_lazy_with(configuration.database.with_db());
-        let server = run(listener, connection_pool.clone()).expect("Failed to bind address");
+            .connect_lazy(&configuration.database.with_db());
+        let connect_copy = connection_pool.expect("error creating or unwraping pool").clone();
+        let server = run(listener, connect_copy.clone()).expect("Failed to bind address");
         let _ = tokio::spawn(server);
         dbg!("running in develop feature");
         TestApp {
             address,
-            db_pool: connection_pool,
+            db_pool: connect_copy.clone(),
         }
     }
 }
@@ -64,7 +66,7 @@ pub async fn configure_database(config: &DatabaseSettings) -> PgPool {
         .expect("Failed to create database.");
 
     // Migrate database
-    let connection_pool = PgPool::connect_with(config.with_db())
+    let connection_pool = PgPool::connect(&config.with_db())
         .await
         .expect("Failed to connect to Postgres.");
     sqlx::migrate!("./migrations")
