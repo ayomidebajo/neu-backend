@@ -68,7 +68,11 @@ pub fn get_configuration() -> Result<Settings, config::ConfigError> {
         .add_source(config::File::from(
             configuration_directory.join(format!("{}.yaml", environment.as_str())),
         ))
-        .add_source(config::Environment::with_prefix("DBPORT"))
+        .add_source(
+            config::Environment::with_prefix("APP")
+                .prefix_separator("_")
+                .separator("__"),
+        )
         .build()
         .expect("error loading source")
         .try_deserialize()

@@ -33,7 +33,7 @@ async fn main() -> std::io::Result<()> {
         .connect_timeout(std::time::Duration::from_secs(2))
         .connect_lazy_with(configuration.database.with_db());
 
-    println!("wtf {:?}", configuration.database.with_db());
+    // println!("wtf {:?}", configuration.database.with_db());
 
     run(listener, connection_pool)?.await
 }
