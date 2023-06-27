@@ -4,3 +4,4 @@ application:
 database:
   # New entry!
   require_ssl: true
+  

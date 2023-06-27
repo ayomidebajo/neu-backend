@@ -2,6 +2,7 @@ use serde_aux::field_attributes::deserialize_number_from_string;
 use serde_derive::Deserialize;
 use sqlx::postgres::PgConnectOptions;
 use sqlx::postgres::PgSslMode;
+use sqlx::ConnectOptions;
 
 #[derive(Deserialize)]
 pub struct Settings {
@@ -34,7 +35,7 @@ impl DatabaseSettings {
         let ssl_mode = if self.require_ssl {
             PgSslMode::Require
         } else {
-            // Try an encrypted connection, fallback to unencrypted if it fails 
+            // Try an encrypted connection, fallback to unencrypted if it fails
             PgSslMode::Prefer
         };
         PgConnectOptions::new()
@@ -45,9 +46,10 @@ impl DatabaseSettings {
             .ssl_mode(ssl_mode)
     }
     // Renamed from `connection_string`
-    pub fn with_db(&self) -> String {
-        // self.without_db().database(&self.database_name)
-        self.database_name.to_owned()
+    pub fn with_db(&self) -> PgConnectOptions {
+        let mut options = self.without_db().database(&self.database_name);
+        options.log_statements(tracing::log::LevelFilter::Trace);
+        options
     }
 }
 
@@ -60,11 +62,13 @@ pub fn get_configuration() -> Result<Settings, config::ConfigError> {
     // Add configuration values from a file named `configuration`. // It will look for any top-level file with an extension
     // that `config` knows how to parse: yaml, json, etc.
     settings_dev
-        .add_source(config::File::from(configuration_directory.join("base")))
         .add_source(config::File::from(
-            configuration_directory.join(&environment),
+            configuration_directory.join("base.yaml"),
         ))
-        .add_source(config::Environment::with_prefix("app").separator("--"))
+        .add_source(config::File::from(
+            configuration_directory.join(format!("{}.yaml", environment.as_str())),
+        ))
+        .add_source(config::Environment::with_prefix("DBPORT"))
         .build()
         .expect("error loading source")
         .try_deserialize()

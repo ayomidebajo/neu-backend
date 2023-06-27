@@ -27,11 +27,11 @@ pub mod production_spawn_server_test {
         let configuration = get_configuration().expect("Failed to read configuration.");
         let connection_pool = PgPoolOptions::new()
             .connect_timeout(std::time::Duration::from_secs(2))
-            .connect_lazy(&configuration.database.with_db());
-        let connect_copy = connection_pool.expect("error creating or unwraping pool").clone();
+            .connect_lazy_with(configuration.database.with_db());
+        let connect_copy = connection_pool.clone();
         let server = run(listener, connect_copy.clone()).expect("Failed to bind address");
         let _ = tokio::spawn(server);
-        dbg!("running in develop feature");
+        dbg!("running in prod feature");
         TestApp {
             address,
             db_pool: connect_copy.clone(),
@@ -66,9 +66,10 @@ pub async fn configure_database(config: &DatabaseSettings) -> PgPool {
         .expect("Failed to create database.");
 
     // Migrate database
-    let connection_pool = PgPool::connect(&config.with_db())
+    let connection_pool = PgPool::connect_with(config.with_db())
         .await
         .expect("Failed to connect to Postgres.");
+
     sqlx::migrate!("./migrations")
         .run(&connection_pool)
         .await
@@ -223,7 +224,7 @@ async fn sign_up_works_dev() {
 }
 
 #[cfg(test)]
-#[cfg(feature = "prod")]
+// #[cfg(feature = "prod")]
 #[actix_rt::test]
 async fn sign_up_works_prod() {
     // use dotenv::dotenv;
@@ -254,8 +255,8 @@ async fn sign_up_works_prod() {
         .expect("Failed to execute rewuest");
 
     // Assert
-    assert!(response.status().is_success());
-    dbg!(response.status().as_u16());
+    // assert!(response.status().is_success());
+    //   println!("nawa {:#?}", response.text_with_charset("utf-8"));
     assert_eq!(200, response.status().as_u16());
 
     // dotenv().ok();
@@ -263,10 +264,10 @@ async fn sign_up_works_prod() {
     let saved =
         sqlx::query_as::<_, LoginUser>("SELECT email, password FROM customers WHERE email = $1")
             .bind(cus.email.to_string())
-            .fetch_optional(&mut connection)
+            .fetch_optional(&app.db_pool)
             .await
             .expect("Failed to fetch saved customer.");
-    dbg!("{:?}", saved.clone());
+    dbg!("saved {:?}", saved.clone());
     assert_eq!(saved.expect("No emailo").email, "ade@gmail.com");
 }
 
