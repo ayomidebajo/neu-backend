@@ -257,7 +257,7 @@ async fn sign_up_works_prod() {
     // Assert
     // assert!(response.status().is_success());
     //   println!("nawa {:#?}", response.text_with_charset("utf-8"));
-    assert_eq!(409, response.status().as_u16());
+    assert_eq!(200, response.status().as_u16());
 
     // dotenv().ok();
 
