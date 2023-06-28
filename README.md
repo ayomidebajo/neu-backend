@@ -19,7 +19,7 @@
 ## docker and postgres
 
 ### create db
-`export DATABASE_URL=postgres://postgres:password@localhost:5432/neu_db`
+`export DATABASE_URL=postgres://postgres:password@localhost:5432/neudb`
 
 ### migrate db
 for example `sqlx migrate add create_subscriptions_table`
