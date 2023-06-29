@@ -31,19 +31,19 @@ pub async fn sign_up(req: web::Json<Customer>, connection: web::Data<PgPool>) ->
     );
 
     // check if the email is already saved in db
-    let email_exists = sqlx::query!(r#"SELECT email FROM customers WHERE email = $1"#, req.email)
-        .fetch_optional(connection.get_ref())
-        .await
-        .expect("Failed to execute query");
+    // let email_exists = sqlx::query!(r#"SELECT email FROM customers WHERE email = $1"#, req.email)
+    //     .fetch_optional(connection.get_ref())
+    //     .await
+    //     .expect("Failed to execute query");
 
-    if let Some(email) = email_exists {
-        tracing::info!(
-            "request_id {} - Email '{:?}' already exists",
-            request_id,
-            email
-        );
-        return HttpResponse::Conflict().finish();
-    }
+    // if let Some(email) = email_exists {
+    //     tracing::info!(
+    //         "request_id {} - Email '{:?}' already exists",
+    //         request_id,
+    //         email
+    //     );
+    //     return HttpResponse::Conflict().finish();
+    // }
 
     tracing::info!(
         "request_id {} - Saving new subscriber details in the database",
