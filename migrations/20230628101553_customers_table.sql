@@ -9,5 +9,6 @@ CREATE TABLE customers(
    phone_no TEXT,
    password VARCHAR NOT NULL,
    created_at timestamptz NOT NULL,
+   is_merchant BOOLEAN NOT NULL,
    is_verified BOOLEAN NOT NULL
 );
