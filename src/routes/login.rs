@@ -81,15 +81,13 @@ pub async fn sign_in(
             if is_valid {
                 let valid_credentials = validate_credentials(data)?;
                 let token = generate_token(valid_credentials)?;
-                return Ok(actix_web::HttpResponse::Ok().json(token));
+                Ok(actix_web::HttpResponse::Ok().json(token))
             } else {
-                return Err(actix_web::error::ErrorUnauthorized("Incorrect password"));
+                Err(actix_web::error::ErrorUnauthorized("Incorrect password"))
             }
         }
         // If the user does not exist, return an error
-        None => {
-            return Err(actix_web::error::ErrorUnauthorized("Incorrect email"));
-        }
+        None => Err(actix_web::error::ErrorUnauthorized("Incorrect email")),
     }
 }
 
