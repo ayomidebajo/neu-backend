@@ -31,25 +31,20 @@ pub async fn sign_up(req: web::Json<Customer>, connection: web::Data<PgPool>) ->
     );
 
     // check if the email is already saved in db
-    // let email_exists = sqlx::query!(r#"SELECT email FROM customers WHERE email = $1"#, req.email)
-    //     .fetch_optional(connection.get_ref())
-    //     .await
-    //     .expect("Failed to execute query");
-
-    // if let Some(email) = email_exists {
-    //     tracing::info!(
-    //         "request_id {} - Email '{:?}' already exists",
-    //         request_id,
-    //         email
-    //     );
-    //     return HttpResponse::Conflict().finish();
-    // }
-
-    tracing::info!(
-        "request_id {} - Saving new subscriber details in the database",
-        request_id
-    );
-    match sqlx::query!(
+    match sqlx::query!(r#"SELECT email FROM customers WHERE email = $1"#, req.email)
+        .fetch_optional(connection.get_ref())
+        .await
+    {
+        Ok(email_exists) => {
+            if let Some(email) = email_exists {
+                tracing::info!(
+                    "request_id {} - Email '{:?}' already exists",
+                    request_id,
+                    email
+                );
+                return HttpResponse::Conflict().finish();
+            } else {
+                match sqlx::query!(
         r#"
 INSERT INTO customers (id, email, fname, lname,password, is_verified, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7)
 "#,
@@ -81,5 +76,34 @@ INSERT INTO customers (id, email, fname, lname,password, is_verified, created_at
             HttpResponse::InternalServerError().finish()
         }
     }
+            }
+        }
+
+        Err(_) => {
+            tracing::info!(
+                "request_id {} - Saving new subscriber details in the database",
+                request_id
+            );
+
+            HttpResponse::from_error(actix_web::error::ErrorInternalServerError(
+                "Failed to connect to database",
+            ))
+        }
+    }
+
+    // if let Some(email) = email_exists {
+    //     tracing::info!(
+    //         "request_id {} - Email '{:?}' already exists",
+    //         request_id,
+    //         email
+    //     );
+    //     return HttpResponse::Conflict().finish();
+    // }
+
+    // tracing::info!(
+    //     "request_id {} - Saving new subscriber details in the database",
+    //     request_id
+    // );
+
     // HttpResponse::Ok().body(format!("Welcome {} {}", req.fname, req.email))
 }
