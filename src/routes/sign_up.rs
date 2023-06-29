@@ -81,7 +81,6 @@ INSERT INTO customers (id, email, fname, lname,password, is_verified, created_at
             );
             print!("Error: {}", e);
             HttpResponse::Conflict().finish()
-            
         }
     }
     // HttpResponse::Ok().body(format!("Welcome {} {}", req.fname, req.email))
