@@ -9,7 +9,6 @@ pub struct Customer {
     pub email: String,
     pub phone_no: String,
     pub password: String,
-    pub is_merchant: bool,
     pub is_verified_user: bool,
 }
 #[derive(Deserialize, Serialize, Debug, Clone, sqlx::FromRow)]

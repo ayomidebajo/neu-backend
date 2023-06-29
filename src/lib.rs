@@ -19,7 +19,7 @@ pub fn run(listener: TcpListener, connection: PgPool) -> Result<Server, std::io:
             )
             .route("/home", web::get().to(routes::home_page::home_page))
             .route("/sign_up", web::post().to(routes::sign_up::sign_up))
-            .route("/login", web::post().to(routes::login::login))
+            .route("/login", web::post().to(routes::login::sign_in))
             .app_data(connection.clone())
     })
     .listen(listener)?

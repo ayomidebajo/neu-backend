@@ -31,21 +31,19 @@ pub async fn sign_up(req: web::Json<Customer>, connection: web::Data<PgPool>) ->
     );
 
     // check if the email is already saved in db
-    // let email_exists = sqlx::query!(r#"SELECT email FROM customers WHERE email = $1"#, req.email)
-    //     .fetch_optional(connection.get_ref())
-    //     .await;
+    let email_exists = sqlx::query!(r#"SELECT email FROM customers WHERE email = $1"#, req.email)
+        .fetch_optional(connection.get_ref())
+        .await
+        .expect("Failed to execute query");
 
-    // if let Ok(email) = email_exists {
-    //     if email.is_some() {
-    //         tracing::info!(
-    //             "request_id {} - Email '{:?}' already exists",
-    //             request_id,
-    //             email
-    //         );
-    //         println!("Email already exists {:?}", email);
-    //         return HttpResponse::Conflict().finish();
-    //     }
-    // }
+    if let Some(email) = email_exists {
+        tracing::info!(
+            "request_id {} - Email '{:?}' already exists",
+            request_id,
+            email
+        );
+        return HttpResponse::Conflict().finish();
+    }
 
     tracing::info!(
         "request_id {} - Saving new subscriber details in the database",
@@ -53,13 +51,12 @@ pub async fn sign_up(req: web::Json<Customer>, connection: web::Data<PgPool>) ->
     );
     match sqlx::query!(
         r#"
-INSERT INTO customers (id, email, fname, lname, is_merchant, password, is_verified, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+INSERT INTO customers (id, email, fname, lname,password, is_verified, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7)
 "#,
         Uuid::new_v4(),
         req.email,
         req.fname,
         req.lname,
-        req.is_merchant,
         hashed_password,
         req.is_verified_user,
         Utc::now()

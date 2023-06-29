@@ -116,114 +116,6 @@ async fn home_page_works() {
 }
 
 #[cfg(test)]
-#[cfg(feature = "dev")]
-#[actix_rt::test]
-async fn login_works() {
-    // use dotenv::dotenv;
-    use neu_backend::models;
-
-    let app = spawn_app().await;
-
-    let client = reqwest::Client::new();
-
-    let cus = models::Customer {
-        fname: "John".to_string(),
-        lname: "Doe".to_string(),
-        email: "amanda@gmail.com".to_string(),
-        password: "password".to_string(),
-        phone_no: "08012345678".to_string(),
-        is_merchant: false,
-        is_verified_user: false,
-    };
-
-    let json_body = serde_json::to_string(&cus).unwrap();
-
-    // ACT
-    let response = client
-        .post(&format!("{}/sign_up", app.address))
-        .header("Content-Type", "application/json")
-        .body(json_body)
-        .send()
-        .await
-        .expect("Failed to execute rewuest");
-
-    // Assert
-    assert!(response.status().is_success());
-    dbg!(response.status().as_u16());
-    assert_eq!(200, response.status().as_u16());
-
-    let login_details = models::LoginUser {
-        email: "amanda@gmail.com".to_string(),
-        password: "password".to_string(),
-    };
-
-    let json_body = serde_json::to_string(&login_details).unwrap();
-
-    let response = client
-        .post(&format!("{}/login", app.address))
-        .header("Content-Type", "application/json")
-        .body(json_body)
-        .send()
-        .await
-        .expect("Failed to execute rewuest");
-
-    assert!(response.status().is_success());
-    dbg!(response);
-    // assert_eq!(200, response);
-}
-
-#[cfg(test)]
-#[cfg(feature = "dev")]
-#[actix_rt::test]
-async fn sign_up_works_dev() {
-    // use dotenv::dotenv;
-    use neu_backend::models::{self, LoginUser};
-    // ARRANGE
-    let app = spawn_app().await;
-    let client = reqwest::Client::new();
-
-    let cus = models::Customer {
-        fname: "John".to_string(),
-        lname: "Doe".to_string(),
-        email: "ala@gmail.com".to_string(),
-        password: "password".to_string(),
-        phone_no: "08012345678".to_string(),
-        is_merchant: false,
-        is_verified_user: false,
-    };
-
-    let json_body = serde_json::to_string(&cus).unwrap();
-
-    // ACT
-    let response = client
-        .post(&format!("{}/sign_up", app.address))
-        .header("Content-Type", "application/json")
-        .body(json_body)
-        .send()
-        .await
-        .expect("Failed to execute rewuest");
-
-    // Assert
-    assert!(response.status().is_success());
-    dbg!(response.status().as_u16());
-    assert_eq!(200, response.status().as_u16());
-    let saved =
-        sqlx::query_as::<_, LoginUser>("select email, password from customers WHERE email = $1")
-            .bind(cus.email.to_string())
-            .fetch_optional(&app.db_pool)
-            .await
-            .expect("Failed to fetch saved customer.");
-
-    // println!("saved {:?}", saved.unwrap().email);
-
-    assert!(cus.email == saved.expect("Email missing").email);
-
-    // assert_eq!(1, 2);
-
-    // assert_eq!(saved.email, "amanda@gmail.com");
-}
-
-#[cfg(test)]
 #[cfg(feature = "prod")]
 #[actix_rt::test]
 async fn sign_up_works_prod() {
@@ -239,7 +131,6 @@ async fn sign_up_works_prod() {
         email: "ade@gmail.com".to_string(),
         password: "password".to_string(),
         phone_no: "08012345678".to_string(),
-        is_merchant: false,
         is_verified_user: false,
     };
 
