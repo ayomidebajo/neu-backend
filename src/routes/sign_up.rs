@@ -42,7 +42,7 @@ pub async fn sign_up(req: web::Json<Customer>, connection: web::Data<PgPool>) ->
                     request_id,
                     email
                 );
-                return HttpResponse::Conflict().finish();
+                HttpResponse::Conflict().finish()
             } else {
                 match sqlx::query!(
         r#"
