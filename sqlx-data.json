@@ -1,6 +1,6 @@
 {
   "db": "PostgreSQL",
-  "2987571de198bf39c3f1e8288484429c4ede24bb2bdaf29f20563f45011941ca": {
+  "0f703bee87960a30def1c968ca8c1833f148d3a9809d49cf0863b421462dc1a9": {
     "describe": {
       "columns": [],
       "nullable": [],
@@ -10,13 +10,12 @@
           "Text",
           "Text",
           "Text",
-          "Bool",
           "Varchar",
           "Bool",
           "Timestamptz"
         ]
       }
     },
-    "query": "\nINSERT INTO customers (id, email, fname, lname, is_merchant, password, is_verified, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)\n"
+    "query": "\nINSERT INTO customers (id, email, fname, lname, password, is_verified, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7)\n"
   }
 }
