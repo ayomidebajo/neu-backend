@@ -15,9 +15,5 @@ pub fn name_parser(s: String) -> bool {
     // one of the characters in the forbidden array.
     let forbidden_characters = ['/', '(', ')', '"', '<', '>', '\\', '{', '}'];
     let contains_forbidden_characters = s.chars().any(|g| forbidden_characters.contains(&g));
-    if is_empty_or_whitespace || is_too_long || contains_forbidden_characters {
-        false
-    } else {
-       true
-    }
+    !(is_empty_or_whitespace || is_too_long || contains_forbidden_characters)
 }
