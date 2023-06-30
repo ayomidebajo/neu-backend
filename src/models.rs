@@ -1,8 +1,9 @@
 use actix_web::Error;
 use sqlx;
+use crate::helpers::parser::name_parser;
 
 use serde_derive::{Deserialize, Serialize};
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize, Serialize, Clone, Debug)]
 
 pub struct Customer {
     pub fname: String,
@@ -15,12 +16,12 @@ pub struct Customer {
 
 impl Customer {
     pub fn parse_validate(cust: Customer) -> Result<Customer, Error> {
-        if cust.fname.len() < 3 {
+        if !name_parser(cust.clone().fname){
             return Err(actix_web::error::ErrorUnauthorized(
                 "Incorrect first name format, names must contain letters only",
             ));
         }
-        if cust.lname.len() < 3 {
+        if !name_parser(cust.clone().lname) {
             return Err(actix_web::error::ErrorUnauthorized(
                 "Incorrect last name format, names must contain letters only",
             ));

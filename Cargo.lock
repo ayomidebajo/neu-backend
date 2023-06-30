@@ -1256,6 +1256,7 @@ dependencies = [
  "tokio-postgres",
  "tracing",
  "tracing-actix-web",
+ "unicode-segmentation",
  "uuid 0.8.2",
 ]
 
