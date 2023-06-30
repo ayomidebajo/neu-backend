@@ -54,7 +54,7 @@ pub async fn sign_up(req: web::Json<Customer>, connection: web::Data<PgPool>) ->
     match sqlx::query!(
         r#"
 INSERT INTO customers (id, email, fname, lname, password, is_verified, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7)
-"#r,
+"#,
         Uuid::new_v4(),
         req.email,
         req.fname,
