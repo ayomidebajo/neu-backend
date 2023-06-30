@@ -17,5 +17,25 @@
       }
     },
     "query": "\nINSERT INTO customers (id, email, fname, lname, password, is_verified, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7)\n"
+  },
+  "d14b07706d307165ae755ce9266669209fa8e8b49ba70fe71936f91c2cfb9898": {
+    "describe": {
+      "columns": [
+        {
+          "name": "email",
+          "ordinal": 0,
+          "type_info": "Text"
+        }
+      ],
+      "nullable": [
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      }
+    },
+    "query": "SELECT email FROM customers WHERE email = $1"
   }
 }
