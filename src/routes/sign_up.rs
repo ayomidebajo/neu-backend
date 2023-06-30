@@ -6,17 +6,11 @@ use uuid::Uuid;
 
 use crate::helpers::pass_helpers::hash_password;
 
-// ADD HASHING POWER
-
 pub async fn sign_up(req: web::Json<Customer>, connection: web::Data<PgPool>) -> HttpResponse {
-    // let password = &req.password;
-    // let password_hash = bcrypt::hash(password).unwrap();
-
     let hashed_password = match hash_password(&req.password) {
         Ok(hashed) => Some(hashed),
         Err(err) => {
             println!("Error hashing password: {}", err);
-            // return;
             None
         }
     };
@@ -30,28 +24,37 @@ pub async fn sign_up(req: web::Json<Customer>, connection: web::Data<PgPool>) ->
         req.fname
     );
 
-    // check if the email is already saved in db
-    let email_exists = sqlx::query!(r#"SELECT email FROM customers WHERE email = $1"#, req.email)
-        .fetch_optional(connection.get_ref())
-        .await;
+    // validate user fields
+    let req = Customer::parse_validate(req.into_inner());
 
-    if let Ok(email) = email_exists {
-        if email.is_some() {
+    // match result
+    match req {
+        // execute queries if user values are okay
+        Ok(req) => {
+            // check if email exists
+            let email_exists =
+                sqlx::query!(r#"SELECT email FROM customers WHERE email = $1"#, req.email)
+                    .fetch_optional(connection.get_ref())
+                    .await;
+
+            if let Ok(email) = email_exists {
+                if email.is_some() {
+                    tracing::info!(
+                        "request_id {} - Email '{:?}' already exists",
+                        request_id,
+                        email
+                    );
+                    println!("Email already exists {:?}", email);
+                    return actix_web::HttpResponse::Conflict().json("Email already exists");
+                }
+            }
+
             tracing::info!(
-                "request_id {} - Email '{:?}' already exists",
-                request_id,
-                email
+                "request_id {} - Saving new subscriber details in the database",
+                request_id
             );
-            println!("Email already exists {:?}", email);
-            return HttpResponse::Conflict().finish();
-        }
-    }
-
-    tracing::info!(
-        "request_id {} - Saving new subscriber details in the database",
-        request_id
-    );
-    match sqlx::query!(
+            // save user into database
+            match sqlx::query!(
         r#"
 INSERT INTO customers (id, email, fname, lname, password, is_verified, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7)
 "#,
@@ -72,7 +75,7 @@ INSERT INTO customers (id, email, fname, lname, password, is_verified, created_a
             tracing::info!(
             "request_id {} - New customer details have been saved", request_id
             );
-            HttpResponse::Ok().finish()
+            actix_web::HttpResponse::Ok().finish()
         }
         Err(e) => {
             tracing::error!(
@@ -80,8 +83,14 @@ INSERT INTO customers (id, email, fname, lname, password, is_verified, created_a
             request_id,
             e
             );
-            HttpResponse::InternalServerError().finish()
+            actix_web::HttpResponse::InternalServerError().finish()
         }
     }
-    // HttpResponse::Ok().body(format!("Welcome {} {}", req.fname, req.email))
+        }
+        // if user details are invalid return response instead of panicking
+        Err(e) => {
+            tracing::warn!("request_id {} - Failed parse: {:?}", request_id, e);
+            actix_web::HttpResponse::BadRequest().json(e.to_string())
+        }
+    }
 }

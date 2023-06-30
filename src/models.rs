@@ -1,3 +1,4 @@
+use actix_web::Error;
 use sqlx;
 
 use serde_derive::{Deserialize, Serialize};
@@ -10,6 +11,37 @@ pub struct Customer {
     pub phone_no: String,
     pub password: String,
     pub is_verified_user: bool,
+}
+
+impl Customer {
+    pub fn parse_validate(cust: Customer) -> Result<Customer, Error> {
+        if cust.fname.len() < 3 {
+            return Err(actix_web::error::ErrorUnauthorized(
+                "Incorrect first name format, names must contain letters only",
+            ));
+        }
+        if cust.lname.len() < 3 {
+            return Err(actix_web::error::ErrorUnauthorized(
+                "Incorrect last name format, names must contain letters only",
+            ));
+        }
+        if cust.email.len() < 3 {
+            return Err(actix_web::error::ErrorUnauthorized(
+                "Incorrect email format",
+            ));
+        }
+        if cust.phone_no.len() < 3 {
+            return Err(actix_web::error::ErrorUnauthorized(
+                "Incorrect phone_no length",
+            ));
+        }
+        if cust.password.len() < 3 {
+            return Err(actix_web::error::ErrorUnauthorized(
+                "Invalid password length, passwords must be aleast 8 characters",
+            ));
+        }
+        Ok(cust)
+    }
 }
 #[derive(Deserialize, Serialize, Debug, Clone, sqlx::FromRow)]
 pub struct TestStruct {
