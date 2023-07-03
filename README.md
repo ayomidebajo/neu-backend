@@ -3,20 +3,14 @@
 ## Install dependencies
 `cargo install`
 
-## add a user to db
-`cargo run add user-1 user-1@example.com`
-
-## initialize db
-`cargo run create_table`
-
-## import users from json file
-`cargo run import_users temp-db.json`
-
-## list users
-`cargo run list`
-
-
 ## docker and postgres
+
+##  running scripts
+run this in your project dir first`chmod +x scripts/init_db.sh`
+then do this too `./scripts/init_db.sh `
+
+## docker
+`docker build --tag neu-backend --file Dockerfile .`
 
 ### create db
 `export DATABASE_URL=postgres://postgres:password@localhost:5432/neudb`

@@ -87,7 +87,7 @@ INSERT INTO customers (id, email, fname, lname, password, is_verified, created_a
         }
     }
         }
-        // if user details are invalid return response instead of panicking
+        // if user details are invalid return response instead of
         Err(e) => {
             tracing::warn!("request_id {} - Failed parse: {:?}", request_id, e);
             actix_web::HttpResponse::BadRequest().json(e.to_string())
