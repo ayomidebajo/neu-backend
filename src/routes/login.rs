@@ -121,7 +121,7 @@ pub enum LoginError {
 
 impl Display for LoginError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self)
+        write!(f, "{}", LoginError::AuthError)
     }
 }
 

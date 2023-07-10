@@ -85,12 +85,18 @@ pub async fn reject_anonymous_users(
 // Function to extract the bearer token from the header value
 fn _extract_bearer_token(header_value: &str) -> Option<&str> {
     // Check if the header value starts with "Bearer "
-    if header_value.starts_with("Bearer ") {
-        // Extract the token by skipping the first 7 characters
-        Some(&header_value[7..])
-    } else {
-        None
-    }
+   
+	// if header_value.starts_with("Bearer ") {
+	//    Some( &header_value[7..])
+	// } else {
+	// 	None
+	// }
+
+	if let Some(stripped) = header_value.strip_prefix("Bearer ") {
+		Some(&stripped[7..])
+	} else {
+		None
+	}
 }
 
 // // Example route
