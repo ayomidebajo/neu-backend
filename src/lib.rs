@@ -1,10 +1,15 @@
 use actix_web::{dev::Server, web, App, HttpServer};
+// use actix_web_lab::middleware::from_fn;
+// use hmac::digest::Key;
 use sqlx::PgPool;
 use std::net::TcpListener;
+pub mod authentication;
 pub mod config;
 pub mod helpers;
 pub mod models;
+pub mod session_state;
 use tracing_actix_web::TracingLogger;
+// use actix_session::SessionMiddleware;
 pub mod routes;
 
 pub fn run(listener: TcpListener, connection: PgPool) -> Result<Server, std::io::Error> {

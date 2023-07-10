@@ -1,7 +1,14 @@
+use std::fmt::Display;
+// use actix_web::http::header::LOCATION;
+// use hmac::digest::KeyInit;
+// use urlencoding;
+// use hmac::Hmac;
+// use sha2::digest::{Update, Digest};
+
 // use actix_web::{Responder, HttpResponse};
 use crate::helpers::pass_helpers::verify_password;
 use crate::models::{LoginUser, TestStruct};
-use actix_web::{web, Error, HttpResponse};
+use actix_web::{web, Error, HttpRequest, HttpResponse};
 use jsonwebtoken::Algorithm;
 use serde::{Deserialize, Serialize};
 
@@ -58,6 +65,7 @@ fn validate_credentials(credentials: LoginUser) -> Result<UserData, Error> {
 pub async fn sign_in(
     credentials: web::Json<LoginUser>,
     connection: web::Data<PgPool>,
+    _req: HttpRequest,
 ) -> Result<HttpResponse, Error> {
     // Validate the user credentials (e.g., authenticate against a database)
     let credentials = LoginUser {
@@ -103,3 +111,35 @@ fn generate_token(user_data: UserData) -> Result<String, Error> {
 
     Ok(token)
 }
+
+// #[derive(thiserror::Error)]
+#[derive(Debug)]
+pub enum LoginError {
+    AuthError,
+    UnexpectedError,
+}
+
+impl Display for LoginError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self)
+    }
+}
+
+// impl ResponseError for LoginError {
+//     fn error_response(&self) -> HttpResponse {
+//         let query_string = format!("error={}", urlencoding::Encoded::new(self.to_string()));
+//         // We need the secret here - how do we get it?
+//         let secret: &[u8] = b"some secret";
+
+//         let hmac_tag = {
+//             let mut mac = Hmac::<sha2::Sha256>::new_from_slice(secret).unwrap();
+//             mac.update(query_string.as_bytes());
+//             mac.finalize().into_bytes()
+//         };
+
+//         HttpResponse::build(self.status_code())
+//             // Appending the hexadecimal representation of the HMAC tag to the
+//             // query string as an additional query parameter.
+//             .insert_header((LOCATION, format!("/login?{query_string}&tag={hmac_tag:x}"))).finish()
+//     }
+// }
