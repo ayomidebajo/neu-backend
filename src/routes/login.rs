@@ -1,16 +1,10 @@
 use std::fmt::Display;
-// use actix_web::http::header::LOCATION;
-// use hmac::digest::KeyInit;
-// use urlencoding;
-// use hmac::Hmac;
-// use sha2::digest::{Update, Digest};
-
-// use actix_web::{Responder, HttpResponse};
 use crate::helpers::pass_helpers::verify_password;
 use crate::models::{LoginUser, TestStruct};
 use actix_web::{web, Error, HttpRequest, HttpResponse};
 use jsonwebtoken::Algorithm;
 use serde::{Deserialize, Serialize};
+use crate::config::{ConfigJwt, AppState};
 
 use sqlx::PgPool;
 
@@ -64,8 +58,9 @@ fn validate_credentials(credentials: LoginUser) -> Result<UserData, Error> {
 // Handler for the sign-in route
 pub async fn sign_in(
     credentials: web::Json<LoginUser>,
-    connection: web::Data<PgPool>,
-    _req: HttpRequest,
+    // connection: web::Data<PgPool>,
+    // hello: web::Data<ConfigJwt>,
+    connection: web::Data<AppState>
 ) -> Result<HttpResponse, Error> {
     // Validate the user credentials (e.g., authenticate against a database)
     let credentials = LoginUser {
@@ -76,10 +71,11 @@ pub async fn sign_in(
     let user: Option<LoginUser> =
         sqlx::query_as::<_, LoginUser>("SELECT email, password FROM customers WHERE email = $1")
             .bind(credentials.email.to_string())
-            .fetch_optional(connection.get_ref())
+            .fetch_optional(&connection.db)
             .await
             .expect("Incorrect email");
 
+            println!("{:?}", connection.config);
     // match user result and handles error gracefully
     match user.clone() {
         // If the email exists, validate password

@@ -7,3 +7,7 @@ database:
   username: "postgres"
   password: "password"
   database_name: "neudb"
+config:
+  jwt_secret: "my secret strings"
+  jwt_expires_in: "60m"
+  jwt_maxage: "60"

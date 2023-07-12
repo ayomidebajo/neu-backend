@@ -29,7 +29,7 @@ pub mod production_spawn_server_test {
             .connect_timeout(std::time::Duration::from_secs(2))
             .connect_lazy_with(configuration.database.with_db());
         let connect_copy = connection_pool.clone();
-        let server = run(listener, connect_copy.clone()).expect("Failed to bind address");
+        let server = run(listener, connect_copy.clone(), configuration.config).expect("Failed to bind address");
         let _ = tokio::spawn(server);
         dbg!("running in prod feature");
         TestApp {
@@ -46,7 +46,7 @@ async fn spawn_app() -> TestApp {
     let mut configuration = get_configuration().expect("Failed to read configuration.");
     configuration.database.database_name = Uuid::new_v4().to_string();
     let connection_pool = configure_database(&configuration.database).await;
-    let server = run(listener, connection_pool.clone()).expect("Failed to bind address");
+    let server = run(listener, connection_pool.clone(), configuration.config).expect("Failed to bind address");
     let _ = tokio::spawn(server);
     println!("running in here in spawn dev");
     TestApp {

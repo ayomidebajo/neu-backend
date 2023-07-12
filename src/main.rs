@@ -8,6 +8,7 @@ use neu_backend::run;
 use sqlx::postgres::PgPoolOptions;
 use std::net::TcpListener;
 pub mod session_state;
+pub mod config;
 
 #[tokio::main]
 async fn main() -> std::io::Result<()> {
@@ -35,5 +36,5 @@ async fn main() -> std::io::Result<()> {
 
     // println!("wtf {:?}", configuration.database.with_db());
 
-    run(listener, connection_pool)?.await
+    run(listener, connection_pool, configuration.config)?.await
 }

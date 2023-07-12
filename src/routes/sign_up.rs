@@ -3,10 +3,11 @@ use actix_web::{web, HttpResponse};
 use chrono::Utc;
 use sqlx::PgPool;
 use uuid::Uuid;
+use crate::config::AppState;
 
 use crate::helpers::pass_helpers::hash_password;
 
-pub async fn sign_up(req: web::Json<Customer>, connection: web::Data<PgPool>) -> HttpResponse {
+pub async fn sign_up(req: web::Json<Customer>, connection: web::Data<AppState>) -> HttpResponse {
     let hashed_password = match hash_password(&req.password) {
         Ok(hashed) => Some(hashed),
         Err(err) => {
@@ -34,7 +35,7 @@ pub async fn sign_up(req: web::Json<Customer>, connection: web::Data<PgPool>) ->
             // check if email exists
             let email_exists =
                 sqlx::query!(r#"SELECT email FROM customers WHERE email = $1"#, req.email)
-                    .fetch_optional(connection.get_ref())
+                    .fetch_optional(&connection.db)
                     .await;
 
             if let Ok(email) = email_exists {
@@ -68,7 +69,7 @@ INSERT INTO customers (id, email, fname, lname, password, is_verified, created_a
     )
     // We use `get_ref` to get an immutable reference to the `PgConnection`
     // wrapped by `web::Data`.
-    .execute(connection.get_ref())
+    .execute(&connection.db)
     .await
     {
         Ok(_) => {
