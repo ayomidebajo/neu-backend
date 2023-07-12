@@ -1,6 +1,8 @@
 use crate::helpers::parser::name_parser;
 use actix_web::Error;
+use chrono::Utc;
 use sqlx;
+use uuid::Uuid;
 
 use serde_derive::{Deserialize, Serialize};
 #[derive(Deserialize, Serialize, Clone, Debug)]
@@ -12,6 +14,26 @@ pub struct Customer {
     pub phone_no: String,
     pub password: String,
     pub is_verified_user: bool,
+}
+
+#[derive(Deserialize, Serialize, Clone, Debug, sqlx::FromRow)]
+pub struct GetUser {
+    pub id: Uuid,
+    pub fname: String,
+    pub lname: String,
+    pub email: String,
+    // pub phone_no: String,
+    pub password: String,
+    pub is_verified: bool,
+    pub created_at: chrono::DateTime<Utc>,
+    // pub is_merchant: bool,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct TokenClaims {
+    pub sub: String,
+    pub iat: usize,
+    pub exp: usize,
 }
 
 impl Customer {
@@ -55,6 +77,8 @@ pub struct LoginUser {
     pub email: String,
     pub password: String,
 }
+
+// #[derive(Deserialize, Serialize, Clone, Debug, sqlx::FromRow)]
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct Subcriptions {

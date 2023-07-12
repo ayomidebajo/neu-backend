@@ -8,6 +8,7 @@ use neu_backend::run;
 use sqlx::postgres::PgPoolOptions;
 use std::net::TcpListener;
 pub mod config;
+pub mod jwt_auth;
 pub mod session_state;
 
 #[tokio::main]
@@ -25,16 +26,10 @@ async fn main() -> std::io::Result<()> {
     let random_addr = format!("http://127.0.0.1:{}", port);
 
     println!("listening on {}", random_addr);
-    // println!(
-    //     "connection string {:?}",
-    //     &configuration.database.connection_string()
-    // );
 
     let connection_pool = PgPoolOptions::new()
         .connect_timeout(std::time::Duration::from_secs(2))
         .connect_lazy_with(configuration.database.with_db());
-
-    // println!("wtf {:?}", configuration.database.with_db());
 
     run(listener, connection_pool, configuration.config)?.await
 }

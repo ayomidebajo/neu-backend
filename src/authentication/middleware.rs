@@ -84,34 +84,9 @@ pub async fn reject_anonymous_users(
 
 // Function to extract the bearer token from the header value
 fn _extract_bearer_token(header_value: &str) -> Option<&str> {
-    // Check if the header value starts with "Bearer "
-
-    // if header_value.starts_with("Bearer ") {
-    //    Some( &header_value[7..])
-    // } else {
-    // 	None
-    // }
-
     if let Some(stripped) = header_value.strip_prefix("Bearer ") {
         Some(&stripped[7..])
     } else {
         None
     }
 }
-
-// // Example route
-// async fn index(req: HttpRequest) -> Result<&'static str> {
-//     Ok("Hello World")
-// }
-
-// #[actix_web::main]
-// async fn main() -> std::io::Result<()> {
-//     HttpServer::new(|| {
-//         App::new()
-//             .wrap(BearerAuthMiddleware)
-//             .service(web::resource("/").to(index))
-//     })
-//     .bind("127.0.0.1:8080")?
-//     .run()
-//     .await
-// }

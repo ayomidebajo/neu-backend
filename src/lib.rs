@@ -7,6 +7,7 @@ pub mod helpers;
 pub mod models;
 pub mod session_state;
 use tracing_actix_web::TracingLogger;
+pub mod jwt_auth;
 pub mod routes;
 
 pub fn run(
@@ -24,6 +25,7 @@ pub fn run(
             .route("/home", web::get().to(routes::home_page::home_page))
             .route("/sign_up", web::post().to(routes::sign_up::sign_up))
             .route("/login", web::post().to(routes::login::sign_in))
+            .route("/me", web::get().to(routes::login::get_me_handler))
             .app_data(web::Data::new(config::AppState {
                 db: connection.clone(),
                 config: config.clone(),
