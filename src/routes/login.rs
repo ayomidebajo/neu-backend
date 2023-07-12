@@ -1,10 +1,10 @@
-use std::fmt::Display;
+use crate::config::AppState;
 use crate::helpers::pass_helpers::verify_password;
 use crate::models::{LoginUser, TestStruct};
-use actix_web::{web, Error, HttpRequest, HttpResponse};
+use actix_web::{web, Error, HttpResponse};
 use jsonwebtoken::Algorithm;
 use serde::{Deserialize, Serialize};
-use crate::config::{ConfigJwt, AppState};
+use std::fmt::Display;
 
 use sqlx::PgPool;
 
@@ -60,7 +60,7 @@ pub async fn sign_in(
     credentials: web::Json<LoginUser>,
     // connection: web::Data<PgPool>,
     // hello: web::Data<ConfigJwt>,
-    connection: web::Data<AppState>
+    connection: web::Data<AppState>,
 ) -> Result<HttpResponse, Error> {
     // Validate the user credentials (e.g., authenticate against a database)
     let credentials = LoginUser {
@@ -75,7 +75,7 @@ pub async fn sign_in(
             .await
             .expect("Incorrect email");
 
-            println!("{:?}", connection.config);
+    println!("{:?}", connection.config);
     // match user result and handles error gracefully
     match user.clone() {
         // If the email exists, validate password

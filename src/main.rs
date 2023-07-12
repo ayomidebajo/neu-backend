@@ -7,8 +7,8 @@ use neu_backend::config::get_configuration;
 use neu_backend::run;
 use sqlx::postgres::PgPoolOptions;
 use std::net::TcpListener;
-pub mod session_state;
 pub mod config;
+pub mod session_state;
 
 #[tokio::main]
 async fn main() -> std::io::Result<()> {

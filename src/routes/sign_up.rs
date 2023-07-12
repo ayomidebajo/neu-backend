@@ -1,9 +1,9 @@
+use crate::config::AppState;
 use crate::models::Customer;
 use actix_web::{web, HttpResponse};
 use chrono::Utc;
-use sqlx::PgPool;
+// use sqlx::PgPool;
 use uuid::Uuid;
-use crate::config::AppState;
 
 use crate::helpers::pass_helpers::hash_password;
 

@@ -31,7 +31,7 @@ impl ConfigJwt {
 pub struct Settings {
     pub database: DatabaseSettings,
     pub application: ApplicationSettings,
-    pub config: ConfigJwt
+    pub config: ConfigJwt,
 }
 
 #[derive(Deserialize)]
@@ -133,7 +133,6 @@ impl TryFrom<String> for Environment {
 }
 
 pub struct AppState {
-   pub db: PgPool,
-   pub config: ConfigJwt
+    pub db: PgPool,
+    pub config: ConfigJwt,
 }
-
