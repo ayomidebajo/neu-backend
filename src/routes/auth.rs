@@ -1,18 +1,18 @@
 use crate::authentication::jwt_auth;
 use crate::config::AppState;
 use crate::helpers::parser::user_parser;
+use crate::helpers::pass_helpers::hash_password;
 use crate::helpers::pass_helpers::verify_password;
-use crate::models::{GetUser, LoginUser, Customer, TokenClaims};
+use crate::models::{Customer, GetUser, LoginUser, TokenClaims};
 use actix_web::{
     cookie::{time::Duration as ActixWebDuration, Cookie},
-    web, get, post, Error, HttpMessage, HttpRequest, HttpResponse, Responder,
+    get, post, web, Error, HttpMessage, HttpRequest, HttpResponse, Responder,
 };
 use chrono::{Duration, Utc};
 use jsonwebtoken::{encode, EncodingKey, Header};
 use serde_json::json;
 use std::fmt::Display;
 use uuid::Uuid;
-use crate::helpers::pass_helpers::hash_password;
 
 // Handler for the sign-in route
 #[post("/auth/login")]
@@ -66,7 +66,6 @@ pub async fn sign_in(
         None => Err(actix_web::error::ErrorUnauthorized("User doesn't exist")),
     }
 }
-
 
 // Handler for registering a user
 #[post("/auth/register")]
@@ -192,8 +191,6 @@ pub async fn get_user(
             .await
             .unwrap();
 
-    drop(user_id);
-
     let filtered_user = user_parser(user.expect("user not found"));
 
     let json_response = serde_json::json!({
@@ -205,7 +202,6 @@ pub async fn get_user(
 
     HttpResponse::Ok().json(json_response)
 }
-
 
 #[get("/auth/logout")]
 async fn logout(_: jwt_auth::JwtMiddleware) -> impl Responder {

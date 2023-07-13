@@ -1,5 +1,5 @@
 use crate::routes::{
-    auth::{get_user, sign_in, sign_up, logout},
+    auth::{get_user, logout, sign_in, sign_up},
     health_check::health_check,
 };
 use actix_web::web;
