@@ -1,4 +1,4 @@
-use actix_web::{HttpResponse, get, Responder};
+use actix_web::{get, HttpResponse, Responder};
 use tracing;
 use uuid::Uuid;
 

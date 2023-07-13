@@ -1,6 +1,7 @@
 use crate::routes::{
     auth::{get_user, logout, sign_in, sign_up},
-    health_check::health_check, home_page::home_page
+    health_check::health_check,
+    home_page::home_page,
 };
 use actix_web::web;
 
@@ -11,7 +12,7 @@ pub fn config(conf: &mut web::ServiceConfig) {
         .service(sign_in)
         .service(logout)
         .service(get_user)
-		.service(home_page);
+        .service(home_page);
 
     conf.service(scope);
 }
