@@ -29,6 +29,16 @@ pub struct GetUser {
     // pub is_merchant: bool,
 }
 
+#[derive(Deserialize, Serialize, Clone, Debug, sqlx::FromRow)]
+pub struct FilteredUser {
+    pub id: Uuid,
+    pub fname: String,
+    pub lname: String,
+    pub email: String,
+    pub is_verified: bool,
+    pub created_at: chrono::DateTime<Utc>,
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TokenClaims {
     pub sub: String,

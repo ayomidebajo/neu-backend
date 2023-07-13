@@ -7,7 +7,6 @@ pub mod helpers;
 pub mod models;
 pub mod session_state;
 use tracing_actix_web::TracingLogger;
-pub mod jwt_auth;
 pub mod routes;
 
 pub fn run(

@@ -1,3 +1,4 @@
+pub mod authentication;
 pub mod error;
 pub mod helpers;
 pub mod models;
@@ -8,7 +9,6 @@ use neu_backend::run;
 use sqlx::postgres::PgPoolOptions;
 use std::net::TcpListener;
 pub mod config;
-pub mod jwt_auth;
 pub mod session_state;
 
 #[tokio::main]

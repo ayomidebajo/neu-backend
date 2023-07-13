@@ -1,6 +1,7 @@
+use crate::authentication::jwt_auth;
 use crate::config::AppState;
+use crate::helpers::parser::user_parser;
 use crate::helpers::pass_helpers::verify_password;
-use crate::jwt_auth;
 use crate::models::{GetUser, LoginUser, TestStruct, TokenClaims};
 use actix_web::{
     cookie::{time::Duration as ActixWebDuration, Cookie},
@@ -131,10 +132,12 @@ pub async fn get_me_handler(
             .await
             .unwrap();
 
+    let filtered_user = user_parser(user.expect("user not found"));
+
     let json_response = serde_json::json!({
         "status":  "success",
         "data": serde_json::json!({
-            "user": user.unwrap()
+            "user": filtered_user
         })
     });
 
