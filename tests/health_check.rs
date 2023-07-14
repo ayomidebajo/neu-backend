@@ -141,7 +141,7 @@ async fn sign_up_works_prod() {
 
     // ACT
     let response = client
-        .post(&format!("{}/api/auth/register", app.address))
+        .post(&format!("{}/api/auth/user/register", app.address))
         .header("Content-Type", "application/json")
         .body(json_body)
         .send()
