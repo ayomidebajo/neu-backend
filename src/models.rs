@@ -29,6 +29,8 @@ pub struct GetUser {
     // pub is_merchant: bool,
 }
 
+// add redis in future
+
 #[derive(Deserialize, Serialize, Clone, Debug, sqlx::FromRow)]
 pub struct FilteredUser {
     pub id: Uuid,
