@@ -134,7 +134,7 @@ async fn sign_up_works_prod() {
         password: "password".to_string(),
         phone_no: "08012345678".to_string(),
         is_verified_user: false,
-        is_subscribed: false
+        is_subscribed: false,
     };
 
     let json_body = serde_json::to_string(&cus).unwrap();

@@ -7,7 +7,7 @@ use crate::models::UpdateCustomer;
 use crate::models::{Customer, GetUser, LoginUser, TokenClaims};
 use actix_web::{
     cookie::{time::Duration as ActixWebDuration, Cookie},
-    get, post, web, Error, HttpMessage, HttpRequest, HttpResponse, Responder,
+    get, post, web, Error, HttpResponse, Responder,
 };
 use chrono::{Duration, Utc};
 use jsonwebtoken::{encode, EncodingKey, Header};
@@ -173,15 +173,11 @@ impl Display for LoginError {
     }
 }
 
-#[allow(clippy::await_holding_refcell_ref)]
+// #[allow(clippy::await_holding_refcell_ref)]
 #[get("/user/me")]
-pub async fn get_user(
-    req: HttpRequest,
-    data: web::Data<AppState>,
-    _: jwt_auth::JwtMiddleware,
-) -> impl Responder {
-    let ext = req.extensions();
-    let user_id = ext.get::<uuid::Uuid>().unwrap();
+pub async fn get_user(data: web::Data<AppState>, jwt: jwt_auth::JwtMiddleware) -> impl Responder {
+    // let ext = req.extensions();
+    let user_id = jwt.user_id;
 
     // // drop(ext);
     // let user_id = user_id
