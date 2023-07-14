@@ -1,6 +1,6 @@
 -- Add migration script here
 -- Create Customers Table
-CREATE TABLE customers(
+CREATE TABLE IF NOT EXISTS customers(
    id uuid NOT NULL,
    PRIMARY KEY (id),
    email TEXT NOT NULL UNIQUE,

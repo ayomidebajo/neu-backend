@@ -3,6 +3,7 @@ use crate::config::AppState;
 use crate::helpers::parser::user_parser;
 use crate::helpers::pass_helpers::hash_password;
 use crate::helpers::pass_helpers::verify_password;
+use crate::models::UpdateCustomer;
 use crate::models::{Customer, GetUser, LoginUser, TokenClaims};
 use actix_web::{
     cookie::{time::Duration as ActixWebDuration, Cookie},
@@ -15,7 +16,7 @@ use std::fmt::Display;
 use uuid::Uuid;
 
 // Handler for the sign-in route
-#[post("/auth/login")]
+#[post("/auth/user/login")]
 pub async fn sign_in(
     credentials: web::Json<LoginUser>,
     connection: web::Data<AppState>,
@@ -68,7 +69,7 @@ pub async fn sign_in(
 }
 
 // Handler for registering a user
-#[post("/auth/register")]
+#[post("/auth/user/register")]
 pub async fn sign_up(req: web::Json<Customer>, connection: web::Data<AppState>) -> HttpResponse {
     let hashed_password = match hash_password(&req.password) {
         Ok(hashed) => Some(hashed),
@@ -119,7 +120,7 @@ pub async fn sign_up(req: web::Json<Customer>, connection: web::Data<AppState>) 
             // save user into database
             match sqlx::query!(
         r#"
-INSERT INTO customers (id, email, fname, lname, password, is_verified, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7)
+INSERT INTO customers (id, email, fname, lname, password, is_verified, is_subscribed, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 "#,
         Uuid::new_v4(),
         req.email,
@@ -127,6 +128,7 @@ INSERT INTO customers (id, email, fname, lname, password, is_verified, created_a
         req.lname,
         hashed_password,
         req.is_verified_user,
+        req.is_subscribed,
         Utc::now()
     )
     // We use `get_ref` to get an immutable reference to the `PgConnection`
@@ -172,7 +174,7 @@ impl Display for LoginError {
 }
 
 #[allow(clippy::await_holding_refcell_ref)]
-#[get("/users/me")]
+#[get("/user/me")]
 pub async fn get_user(
     req: HttpRequest,
     data: web::Data<AppState>,
@@ -201,6 +203,39 @@ pub async fn get_user(
     });
 
     HttpResponse::Ok().json(json_response)
+}
+
+#[post("/user/update")]
+pub async fn update_user(
+    req: web::Json<UpdateCustomer>,
+    data: web::Data<AppState>,
+    jwt: jwt_auth::JwtMiddleware,
+) -> impl Responder {
+    let user_id = jwt.user_id;
+    let user: Option<GetUser> =
+        sqlx::query_as::<_, GetUser>("SELECT * FROM customers WHERE id = $1")
+            .bind(user_id)
+            .fetch_optional(&data.db)
+            .await
+            .expect("Incorrect user id");
+
+    let _user = user.unwrap();
+    match sqlx::query("UPDATE customers SET fname = $1, lname = $2, phone_no = $3 WHERE id = $4")
+        .bind(req.fname.clone())
+        .bind(req.lname.clone())
+        .bind(req.phone_no.clone())
+        .bind(user_id)
+        .execute(&data.db)
+        .await
+    {
+        Ok(_) => HttpResponse::Ok().json(json!({"status": "success"})),
+        Err(_) => HttpResponse::InternalServerError().json(json!({
+            "status": "fail"
+        })),
+    }
+    // HttpResponse::Ok().json(json!({"status": "success",  "data": serde_json::json!({
+    //         "user": user
+    //     })}))
 }
 
 #[get("/auth/logout")]

@@ -8,6 +8,7 @@ pub mod models;
 pub mod session_state;
 use tracing_actix_web::TracingLogger;
 pub mod routes;
+// use actix_session::{ Session};
 
 pub fn run(
     listener: TcpListener,
@@ -27,3 +28,9 @@ pub fn run(
     .run();
     Ok(server)
 }
+
+// create a table token_cache
+// add rows (user_id, token_string)
+// add expiring date
+// create a cron job that will be updating this table every minute
+// add a helper function that fires when a user logout or when the token is expired.

@@ -1,9 +1,9 @@
 use crate::routes::{
-    auth::{get_user, logout, sign_in, sign_up},
+    auth::{get_user, logout, sign_in, sign_up, update_user},
     health_check::health_check,
     home_page::home_page,
 };
-use actix_web::web;
+use actix_web::web::{self};
 
 pub fn config(conf: &mut web::ServiceConfig) {
     let scope = web::scope("/api")
@@ -12,7 +12,8 @@ pub fn config(conf: &mut web::ServiceConfig) {
         .service(sign_in)
         .service(logout)
         .service(get_user)
-        .service(home_page);
+        .service(home_page)
+        .service(update_user);
 
     conf.service(scope);
 }

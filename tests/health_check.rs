@@ -177,7 +177,7 @@ async fn sign_up_fails_when_data_is_missing() {
     let json_body = serde_json::to_string(&cus).unwrap();
 
     let response = client
-        .post(&format!("{}/api/auth/register", app.address))
+        .post(&format!("{}/api/auth/user/register", app.address))
         .header("Content-Type", "application/json")
         .body(json_body)
         .send()

@@ -1,5 +1,5 @@
 -- Add migration script here
-CREATE TABLE merchants(
+CREATE TABLE IF NOT EXISTS merchants(
    id uuid NOT NULL,
    PRIMARY KEY (id),
    email TEXT NOT NULL UNIQUE,
