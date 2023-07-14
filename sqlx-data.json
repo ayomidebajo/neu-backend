@@ -1,6 +1,6 @@
 {
   "db": "PostgreSQL",
-  "0f703bee87960a30def1c968ca8c1833f148d3a9809d49cf0863b421462dc1a9": {
+  "93f8a3ba5f08bf565d1d6be4263c99fc2e3bd599a08272b835336aa956e51a00": {
     "describe": {
       "columns": [],
       "nullable": [],
@@ -12,24 +12,12 @@
           "Text",
           "Varchar",
           "Bool",
+          "Bool",
           "Timestamptz"
         ]
       }
     },
-    "query": "\nINSERT INTO customers (id, email, fname, lname, password, is_verified, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7)\n"
-  },
-  "7c01edffe49eea94b35ce188ccc8bed161f9295139db9c0c513d2744030b89ec": {
-    "describe": {
-      "columns": [],
-      "nullable": [],
-      "parameters": {
-        "Left": [
-          "Int4",
-          "Text"
-        ]
-      }
-    },
-    "query": "\nINSERT INTO token_cache (id, token) VALUES ($1, $2)\n"
+    "query": "\nINSERT INTO customers (id, email, fname, lname, password, is_verified, is_subscribed, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)\n"
   },
   "d14b07706d307165ae755ce9266669209fa8e8b49ba70fe71936f91c2cfb9898": {
     "describe": {
