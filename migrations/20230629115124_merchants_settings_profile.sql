@@ -1,5 +1,5 @@
 -- Add migration script here
-CREATE TABLE merchants_settings_profile (
+CREATE TABLE IF NOT EXISTS merchants_settings_profile (
    id uuid NOT NULL,
    PRIMARY KEY (id),
    email TEXT NOT NULL UNIQUE,

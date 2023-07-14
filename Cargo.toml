@@ -31,7 +31,7 @@ unicode-segmentation = "1.10.1"
 validator = "0.16.1"
 fake = "2.6.1"
 base64 = "0.21.2"
-actix-session = { version = "0.7.2", features = ["redis-rs-tls-session"]}
+actix-session = { version = "0.7.2"}
 actix-web-lab = "0.19.1"
 hmac = "0.12.1"
 sha2 = "0.10.7"
@@ -43,6 +43,7 @@ actix-web-httpauth = "0.8.0"
 # argonautica = "0.2.0"
 dotenv = "0.15.0"
 actix-web-flash-messages = { version =  "^0.4.2", features = ["cookies"] }
+cron = "0.12.0"
 
 
 [dependencies.sqlx]

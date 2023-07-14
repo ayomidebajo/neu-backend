@@ -1,6 +1,6 @@
 -- Add migration script here
 ALTER TABLE customers
-ADD COLUMN is_subscribed BOOLEAN NOT NULL DEFAULT false;
+ADD COLUMN IF NOT EXISTS is_subscribed BOOLEAN DEFAULT false;
 
 ALTER TABLE customers
-DROP is_merchant;
+DROP IF EXISTS is_merchant;

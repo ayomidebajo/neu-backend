@@ -88,7 +88,7 @@ async fn health_check_works() {
     // Act
     let response = client
         // Use the returned application address
-        .get(&format!("{}/health_check", &app.address))
+        .get(&format!("{}/api/health_check", &app.address))
         .send()
         .await
         .expect("Failed to execute request.");
@@ -107,7 +107,7 @@ async fn home_page_works() {
     // Act
     let response = client
         // Use the returned application address
-        .get(&format!("{}/home", &app.address))
+        .get(&format!("{}/api/home", &app.address))
         .send()
         .await
         .expect("Failed to execute request.");
@@ -134,13 +134,14 @@ async fn sign_up_works_prod() {
         password: "password".to_string(),
         phone_no: "08012345678".to_string(),
         is_verified_user: false,
+        is_subscribed: false,
     };
 
     let json_body = serde_json::to_string(&cus).unwrap();
 
     // ACT
     let response = client
-        .post(&format!("{}/sign_up", app.address))
+        .post(&format!("{}/api/auth/user/register", app.address))
         .header("Content-Type", "application/json")
         .body(json_body)
         .send()
@@ -177,7 +178,7 @@ async fn sign_up_fails_when_data_is_missing() {
     let json_body = serde_json::to_string(&cus).unwrap();
 
     let response = client
-        .post(&format!("{}/sign_up", app.address))
+        .post(&format!("{}/api/auth/user/register", app.address))
         .header("Content-Type", "application/json")
         .body(json_body)
         .send()

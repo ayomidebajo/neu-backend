@@ -8,6 +8,7 @@ pub mod models;
 pub mod session_state;
 use tracing_actix_web::TracingLogger;
 pub mod routes;
+// use actix_session::{ Session};
 
 pub fn run(
     listener: TcpListener,
@@ -17,14 +18,7 @@ pub fn run(
     let server = HttpServer::new(move || {
         App::new()
             .wrap(TracingLogger::default())
-            .route(
-                "/health_check",
-                web::get().to(routes::health_check::health_check),
-            )
-            .route("/home", web::get().to(routes::home_page::home_page))
-            .route("/sign_up", web::post().to(routes::sign_up::sign_up))
-            .route("/login", web::post().to(routes::login::sign_in))
-            .route("/me", web::get().to(routes::login::get_me_handler))
+            .configure(routes::handler::config)
             .app_data(web::Data::new(config::AppState {
                 db: connection.clone(),
                 config: config.clone(),
@@ -34,3 +28,9 @@ pub fn run(
     .run();
     Ok(server)
 }
+
+// create a table token_cache
+// add rows (user_id, token_string)
+// add expiring date
+// create a cron job that will be updating this table every minute
+// add a helper function that fires when a user logout or when the token is expired.

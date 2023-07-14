@@ -5,8 +5,8 @@ use sqlx;
 use uuid::Uuid;
 
 use serde_derive::{Deserialize, Serialize};
-#[derive(Deserialize, Serialize, Clone, Debug)]
 
+#[derive(Deserialize, Serialize, Clone, Debug, sqlx::FromRow)]
 pub struct Customer {
     pub fname: String,
     pub lname: String,
@@ -14,6 +14,14 @@ pub struct Customer {
     pub phone_no: String,
     pub password: String,
     pub is_verified_user: bool,
+    pub is_subscribed: bool,
+}
+
+#[derive(Deserialize, Serialize, Clone, Debug, sqlx::FromRow)]
+pub struct UpdateCustomer {
+    pub fname: String,
+    pub lname: String,
+    pub phone_no: String,
 }
 
 #[derive(Deserialize, Serialize, Clone, Debug, sqlx::FromRow)]
@@ -30,6 +38,12 @@ pub struct GetUser {
 }
 
 // add redis in future
+
+#[derive(Deserialize, Serialize, Clone, Debug, sqlx::FromRow)]
+pub struct GetTokenCache {
+    pub id: Uuid,
+    pub token: String,
+}
 
 #[derive(Deserialize, Serialize, Clone, Debug, sqlx::FromRow)]
 pub struct FilteredUser {
