@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS merchants_settings_profile (
    phone_no TEXT,
    password VARCHAR NOT NULL,
   
-   is_merchant BOOLEAN NOT NULL,
+   is_merchant BOOLEAN NOT NULL DEFAULT true,
    is_verified BOOLEAN NOT NULL,
    business_name TEXT NOT NULL,
    business_logo TEXT NOT NULL,
@@ -19,6 +19,6 @@ CREATE TABLE IF NOT EXISTS merchants_settings_profile (
    no_of_employees INT NOT NULL,
    open_days TEXT NOT NULL,
    open_hours TEXT NOT NULL,
-    updated_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone,
     created_at timestamp with time zone NOT NULL
 );

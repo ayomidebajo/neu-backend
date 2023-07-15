@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS merchants(
    business_name TEXT NOT NULL,
    password VARCHAR NOT NULL,
    created_at timestamp with time zone NOT NULL,
-   updated_at timestamp with time zone NOT NULL,
+   updated_at timestamp with time zone,
    is_verified BOOLEAN NOT NULL,
    is_active BOOLEAN NOT NULL
 );

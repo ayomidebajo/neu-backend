@@ -96,10 +96,13 @@ pub async fn sign_up(req: web::Json<Customer>, connection: web::Data<AppState>) 
         // execute queries if user values are okay
         Ok(req) => {
             // check if email exists
-            let email_exists =
-                sqlx::query!(r#"SELECT email FROM customers WHERE email = $1"#, req.email)
-                    .fetch_optional(&connection.db)
-                    .await;
+            // let email_exists =
+            //     sqlx::query!(r#"SELECT email FROM customers WHERE email = $1"#, req.email)
+            //         .fetch_optional(&connection.db)
+            //         .await;
+            let email_exists = sqlx::query_as::<_, Customer>("SELECT * FROM customers")
+                .fetch_optional(&connection.db)
+                .await;
 
             println!("email doesn't exist we move to the next code");
 
@@ -120,23 +123,40 @@ pub async fn sign_up(req: web::Json<Customer>, connection: web::Data<AppState>) 
                 request_id
             );
             // save user into database
-            match sqlx::query!(
-        r#"
-INSERT INTO customers (id, email, fname, lname, password, is_verified, is_subscribed, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-"#,
-        Uuid::new_v4(),
-        req.email,
-        req.fname,
-        req.lname,
-        hashed_password,
-        req.is_verified_user,
-        req.is_subscribed,
-        Utc::now()
-    )
-    // We use `get_ref` to get an immutable reference to the `PgConnection`
-    // wrapped by `web::Data`.
-    .execute(&connection.db)
-    .await
+
+            let created_at = Utc::now();
+            let query = "
+        INSERT INTO customers (id, email, fname, lname, password, is_verified, is_subscribed, created_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)";
+
+            match sqlx::query(query)
+        .bind(Uuid::new_v4())
+        .bind(req.email)
+        .bind(req.fname)
+        .bind(req.lname)
+        .bind(hashed_password)
+        .bind(req.is_verified_user)
+        .bind(req.is_subscribed)
+        .bind(created_at)
+        .execute(&connection.db)
+        .await
+//             match sqlx::query!(
+//         r#"
+// INSERT INTO customers (id, email, fname, lname, password, is_verified, is_subscribed, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+// "#,
+//         Uuid::new_v4(),
+//         req.email,
+//         req.fname,
+//         req.lname,
+//         hashed_password,
+//         req.is_verified_user,
+//         req.is_subscribed,
+//         Utc::now()
+//     )
+//     // We use `get_ref` to get an immutable reference to the `PgConnection`
+//     // wrapped by `web::Data`.
+//     .execute(&connection.db)
+//     .await
     {
         Ok(_) => {
             tracing::info!(
@@ -150,7 +170,7 @@ INSERT INTO customers (id, email, fname, lname, password, is_verified, is_subscr
             request_id,
             e
             );
-            actix_web::HttpResponse::InternalServerError().finish()
+            actix_web::HttpResponse::InternalServerError().body(e.to_string())
         }
     }
         }
