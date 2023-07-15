@@ -101,7 +101,7 @@ pub async fn sign_up(req: web::Json<Customer>, connection: web::Data<AppState>) 
                     .fetch_optional(&connection.db)
                     .await;
 
-                println!("email doesn't exist we move to the next code");
+            println!("email doesn't exist we move to the next code");
 
             if let Ok(email) = email_exists {
                 if email.is_some() {
