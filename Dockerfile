@@ -12,7 +12,6 @@ RUN cargo chef cook --release --recipe-path recipe.json
 COPY . .
 # Force sqlx to load from the offline cache
 ENV SQLX_OFFLINE true
-# Set the environment to production
 ENV APP_ENVIRONMENT production
 # Let's build our binary!
 RUN cargo build --release --bin neu-backend
@@ -31,6 +30,7 @@ RUN apt-get update -y \
 COPY --from=builder /app/target/release/neu-backend neu-backend
 COPY configuration configuration
 ENV APP_ENVIRONMENT production
+# ENV SQLX_OFFLINE true
 ENTRYPOINT ["./neu-backend"]
 # Build a docker image tagged as "neu_backend" according to the recipe
 # specified in `Dockerfile`
