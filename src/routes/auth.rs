@@ -16,7 +16,7 @@ use std::fmt::Display;
 use uuid::Uuid;
 
 // Handler for the sign-in route
-#[post("/auth/user/login")]
+#[post("/user/login")]
 pub async fn sign_in(
     credentials: web::Json<LoginUser>,
     connection: web::Data<AppState>,
@@ -26,7 +26,7 @@ pub async fn sign_in(
             .bind(credentials.email.to_string())
             .fetch_optional(&connection.db)
             .await
-            .expect("Incorrect email");
+            .expect("error");
 
     // match user result and handles error gracefully
     match user.clone() {
@@ -69,7 +69,7 @@ pub async fn sign_in(
 }
 
 // Handler for registering a user
-#[post("/auth/user/register")]
+#[post("/user/register")]
 pub async fn sign_up(req: web::Json<Customer>, connection: web::Data<AppState>) -> HttpResponse {
     let hashed_password = match hash_password(&req.password) {
         Ok(hashed) => Some(hashed),
@@ -100,6 +100,8 @@ pub async fn sign_up(req: web::Json<Customer>, connection: web::Data<AppState>) 
                 sqlx::query!(r#"SELECT email FROM customers WHERE email = $1"#, req.email)
                     .fetch_optional(&connection.db)
                     .await;
+
+                println!("email doesn't exist we move to the next code");
 
             if let Ok(email) = email_exists {
                 if email.is_some() {

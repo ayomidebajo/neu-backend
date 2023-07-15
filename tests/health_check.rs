@@ -26,7 +26,7 @@ pub mod production_spawn_server_test {
         let address = format!("http://127.0.0.1:{}", port);
         let configuration = get_configuration().expect("Failed to read configuration.");
         let connection_pool = PgPoolOptions::new()
-            .connect_timeout(std::time::Duration::from_secs(2))
+            .acquire_timeout(std::time::Duration::from_secs(2))
             .connect_lazy_with(configuration.database.with_db());
         let connect_copy = connection_pool.clone();
         let server = run(listener, connect_copy.clone(), configuration.config)

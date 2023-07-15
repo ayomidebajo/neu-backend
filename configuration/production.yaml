@@ -2,6 +2,5 @@
 application:
   host: 0.0.0.0
 database:
-  # New entry!
   require_ssl: true
   

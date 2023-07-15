@@ -7,7 +7,8 @@ CREATE TABLE IF NOT EXISTS settings_profile (
    lname TEXT NOT NULL,
    phone_no TEXT,
    password VARCHAR NOT NULL,
-   updated_at timestamptz NOT NULL,
+   created_at timestamp with time zone NOT NULL,
+   updated_at timestamp with time zone NOT NULL,
    is_merchant BOOLEAN NOT NULL,
    is_verified BOOLEAN NOT NULL
 );

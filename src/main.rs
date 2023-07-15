@@ -27,9 +27,8 @@ async fn main() -> std::io::Result<()> {
 
     println!("listening on {}", random_addr);
 
-    let connection_pool = PgPoolOptions::new()
-        .connect_timeout(std::time::Duration::from_secs(2))
-        .connect_lazy_with(configuration.database.with_db());
+    let connection_pool = PgPoolOptions::new().max_connections(10).connect_lazy("postgres://postgres:password@0.0.0.0:5432/neudb").expect("connection error");
 
-    run(listener, connection_pool, configuration.config)?.await
+    run(listener, connection_pool, configuration.config)?.await.expect("eorrr");
+    Ok(())
 }

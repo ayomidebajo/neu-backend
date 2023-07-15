@@ -72,19 +72,21 @@ impl DatabaseSettings {
     // Renamed from `connection_string`
     pub fn with_db(&self) -> PgConnectOptions {
         let mut options = self.without_db().database(&self.database_name);
+        // println!("print db name {:?}, pass {:?}, user {:?}, host {:?}, port {:?}", self.database_name, self.password, self.username, self.host, self.port);
         options.log_statements(tracing::log::LevelFilter::Trace);
+        // println!("options {:?}", options);
         options
     }
 }
 
 pub fn get_configuration() -> Result<Settings, config::ConfigError> {
-    // Initialise our configuration reader
+
     let settings_dev = config::Config::builder();
     let base_path = std::env::current_dir().expect("Failed to determine the current directory");
     let configuration_directory = base_path.join("configuration");
     let environment: String = std::env::var("APP_ENVIRONMENT").unwrap_or_else(|_| "local".into());
-    // Add configuration values from a file named `configuration`. // It will look for any top-level file with an extension
-    // that `config` knows how to parse: yaml, json, etc.
+
+    // println!("environment {:?}", environment.as_str());
     settings_dev
         .add_source(config::File::from(
             configuration_directory.join("base.yaml"),
