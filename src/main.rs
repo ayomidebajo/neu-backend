@@ -10,6 +10,7 @@ use sqlx::postgres::PgPoolOptions;
 use std::net::TcpListener;
 pub mod config;
 pub mod session_state;
+use models::GetUser;
 
 #[tokio::main]
 async fn main() -> std::io::Result<()> {
@@ -32,6 +33,19 @@ async fn main() -> std::io::Result<()> {
         .acquire_timeout(std::time::Duration::from_secs(3))
         .connect_lazy(&configuration.database.connection_string())
         .expect("error");
+
+    println!(
+        "connection pool {:?}",
+        &configuration.database.connection_string()
+    );
+
+    // test connection
+    let test_cust: Option<GetUser> = sqlx::query_as::<_, GetUser>("SELECT * from customers")
+        .fetch_optional(&connection_pool)
+        .await
+        .expect("error");
+
+    println!("test cust {:?}", test_cust);
 
     // let connection_pool = PgPoolOptions::new()
     //     .max_connections(10)

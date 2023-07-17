@@ -3,3 +3,5 @@ run:
 	
 build:
 	docker build --tag neu-backend --file Dockerfile .
+sqlx_prepare:
+	cargo sqlx prepare -- --lib

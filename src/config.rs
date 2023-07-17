@@ -2,7 +2,7 @@ use serde_aux::field_attributes::deserialize_number_from_string;
 use serde_derive::Deserialize;
 use sqlx::postgres::PgConnectOptions;
 use sqlx::postgres::PgSslMode;
-// use sqlx::ConnectOptions;
+use sqlx::ConnectOptions;
 use sqlx::PgPool;
 
 #[derive(Debug, Deserialize, Clone)]
@@ -10,21 +10,6 @@ pub struct ConfigJwt {
     pub jwt_secret: String,
     pub jwt_expires_in: String,
     pub jwt_maxage: i32,
-}
-
-impl ConfigJwt {
-    pub fn init() -> ConfigJwt {
-        // let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-        let jwt_secret = std::env::var("JWT_SECRET").expect("JWT_SECRET must be set");
-        let jwt_expires_in = std::env::var("JWT_EXPIRED_IN").expect("JWT_EXPIRED_IN must be set");
-        let jwt_maxage = std::env::var("JWT_MAXAGE").expect("JWT_MAXAGE must be set");
-        ConfigJwt {
-            // database_url,
-            jwt_secret,
-            jwt_expires_in,
-            jwt_maxage: jwt_maxage.parse::<i32>().unwrap(),
-        }
-    }
 }
 
 #[derive(Deserialize)]
@@ -72,18 +57,35 @@ impl DatabaseSettings {
     // Renamed from `connection_string`
     pub fn with_db(&self) -> PgConnectOptions {
         let options = self.without_db().database(&self.database_name);
-        // println!("print db name {:?}, pass {:?}, user {:?}, host {:?}, port {:?}", self.database_name, options.log_statements(tracing::log::LevelFilter::Trace);
-        println!("options {:?}", options.get_database());
+        options
+            .clone()
+            .log_statements(tracing::log::LevelFilter::Trace);
+        println!("options {:?}", &options.get_database());
 
         options
     }
 
     pub fn connection_string(&self) -> String {
         let connection_string = format!(
-            "postgres://{}:{}@{}:{}/{}?sslmode={}",
-            self.username, self.password, self.host, self.port, self.database_name, "disable"
+            "postgres://{}:{}@{}:{}/{}",
+            self.username, self.password, self.host, self.port, self.database_name,
         );
         connection_string
+        // if self.require_ssl {
+        //     connection_string = format!(
+        //         "postgres://{}:{}@{}:{}/{}",
+        //         self.username, self.password, self.host, self.port, self.database_name,
+        //     );
+
+        //     connection_string
+        // } else {
+        //     connection_string = format!(
+        //         "postgres://{}:{}@{}:{}/{}",
+        //         self.username, self.password, self.host, self.port, self.database_name,
+        //     );
+        //     connection_string
+        // }
+        // connection_string
     }
 }
 
