@@ -31,13 +31,14 @@ async fn main() -> std::io::Result<()> {
     let connection_pool = PgPoolOptions::new()
         .max_connections(10)
         .acquire_timeout(std::time::Duration::from_secs(3))
-        .connect_lazy(&configuration.database.connection_string())
+        .connect(&configuration.database.connection_string())
+        .await
         .expect("error");
 
-    println!(
-        "connection pool {:?}",
-        &configuration.database.connection_string()
-    );
+    // println!(
+    //     "connection pool {:?}",
+    //     &configuration.database.connection_string()
+    // );
 
     // test connection
     let test_cust: Option<GetUser> = sqlx::query_as::<_, GetUser>("SELECT * from customers")
