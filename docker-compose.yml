@@ -2,7 +2,7 @@ version: '3'
 services:
   neu_server:
     image: rust:latest
-    container_name: neu-backend
+    container_name: neu_server
     ports:
       - "8000:8000"
     depends_on:
@@ -10,8 +10,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    volumes:
-      - ./data:/usr/src/neu/target/release
+    env_file:
+      - .env
   postgres:
     image: postgres:latest
     container_name: neudb

@@ -5,18 +5,18 @@
 
 ## docker and postgres
 
-##  running scripts
+<!-- ##  running scripts
 run this in your project dir first`chmod +x scripts/init_db.sh`
-then do this too `./scripts/init_db.sh `
+then do this too `./scripts/init_db.sh ` -->
 
 ## docker
-`docker build --tag neu-backend --file Dockerfile .`
+`docker compose build`
 
-### create db
-`export DATABASE_URL=postgres://postgres:password@localhost:5432/neudb`
+`docker compose up -d neu_server`
 
-### migrate db
+
+<!-- ### migrate db
 for example `sqlx migrate add create_subscriptions_table`
 
-then run `sqlx migrate run`
+then run `sqlx migrate run` -->
 
