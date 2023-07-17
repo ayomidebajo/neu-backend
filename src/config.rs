@@ -3,7 +3,7 @@ use serde_derive::Deserialize;
 use sqlx::postgres::PgConnectOptions;
 use sqlx::postgres::PgSslMode;
 use sqlx::ConnectOptions;
-// use sqlx::PgPool;
+use sqlx::PgPool;
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct ConfigJwt {
@@ -67,27 +67,35 @@ impl DatabaseSettings {
 
     pub fn connection_string(&self) -> String {
         let connection_string;
+        // connection_string = format!(
+        //         "postgres://{}:{}@{}:{}/{}?sslmode={}",
+        //         self.username,
+        //         self.password,
+        //         self.host,
+        //         self.port,
+        //         self.database_name,
+        //         "disable".to_owned()
+        //     );
+        //     connection_string
         if self.require_ssl {
             connection_string = format!(
-                "postgres://{}:{}@{}:{}/{}?sslmode={}",
+                "postgres://{}:{}@{}:{}/{}",
                 self.username,
                 self.password,
                 self.host,
                 self.port,
                 self.database_name,
-                "enable".to_owned()
             );
 
             connection_string
         } else {
             connection_string = format!(
-                "postgres://{}:{}@{}:{}/{}?sslmode={}",
+                "postgres://{}:{}@{}:{}/{}",
                 self.username,
                 self.password,
                 self.host,
                 self.port,
                 self.database_name,
-                "disable".to_owned()
             );
             connection_string
         }
@@ -150,6 +158,6 @@ impl TryFrom<String> for Environment {
 }
 
 pub struct AppState {
-    // pub db: PgPool,
+    pub db: PgPool,
     pub config: ConfigJwt,
 }
