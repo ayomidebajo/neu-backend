@@ -1,5 +1,5 @@
 use crate::routes::{
-    auth::{sign_in, sign_up, get_user, update_user},
+    auth::{get_user, sign_in, sign_up, update_user},
     // auth::sign_in,
     health_check::health_check,
     home_page::home_page,

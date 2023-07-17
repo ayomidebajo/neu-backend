@@ -66,39 +66,25 @@ impl DatabaseSettings {
     }
 
     pub fn connection_string(&self) -> String {
-        let connection_string;
-        // connection_string = format!(
-        //         "postgres://{}:{}@{}:{}/{}?sslmode={}",
-        //         self.username,
-        //         self.password,
-        //         self.host,
-        //         self.port,
-        //         self.database_name,
-        //         "disable".to_owned()
+        let connection_string = format!(
+            "postgres://{}:{}@{}:{}/{}",
+            self.username, self.password, self.host, self.port, self.database_name,
+        );
+        connection_string
+        // if self.require_ssl {
+        //     connection_string = format!(
+        //         "postgres://{}:{}@{}:{}/{}",
+        //         self.username, self.password, self.host, self.port, self.database_name,
+        //     );
+
+        //     connection_string
+        // } else {
+        //     connection_string = format!(
+        //         "postgres://{}:{}@{}:{}/{}",
+        //         self.username, self.password, self.host, self.port, self.database_name,
         //     );
         //     connection_string
-        if self.require_ssl {
-            connection_string = format!(
-                "postgres://{}:{}@{}:{}/{}",
-                self.username,
-                self.password,
-                self.host,
-                self.port,
-                self.database_name,
-            );
-
-            connection_string
-        } else {
-            connection_string = format!(
-                "postgres://{}:{}@{}:{}/{}",
-                self.username,
-                self.password,
-                self.host,
-                self.port,
-                self.database_name,
-            );
-            connection_string
-        }
+        // }
         // connection_string
     }
 }
