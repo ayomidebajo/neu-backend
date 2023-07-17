@@ -1,3 +1,18 @@
 {
-  "db": "PostgreSQL"
+  "db_name": "PostgreSQL",
+  "query": "SELECT email FROM customers WHERE email = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "email",
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Left": ["Text"]
+    },
+    "nullable": [false]
+  },
+  "hash": "d14b07706d307165ae755ce9266669209fa8e8b49ba70fe71936f91c2cfb9898"
 }
