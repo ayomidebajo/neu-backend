@@ -34,7 +34,10 @@ async fn main() -> std::io::Result<()> {
         .connect_lazy(&configuration.database.connection_string())
         .expect("error");
 
-    println!("connection pool {:?}", &configuration.database.connection_string());
+    println!(
+        "connection pool {:?}",
+        &configuration.database.connection_string()
+    );
 
     // test connection
     let test_cust: Option<GetUser> = sqlx::query_as::<_, GetUser>("SELECT * from customers")

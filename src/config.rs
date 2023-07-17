@@ -3,7 +3,7 @@ use serde_derive::Deserialize;
 use sqlx::postgres::PgConnectOptions;
 use sqlx::postgres::PgSslMode;
 use sqlx::ConnectOptions;
-use sqlx::PgPool;
+// use sqlx::PgPool;
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct ConfigJwt {
@@ -57,7 +57,9 @@ impl DatabaseSettings {
     // Renamed from `connection_string`
     pub fn with_db(&self) -> PgConnectOptions {
         let options = self.without_db().database(&self.database_name);
-       options.clone().log_statements(tracing::log::LevelFilter::Trace);
+        options
+            .clone()
+            .log_statements(tracing::log::LevelFilter::Trace);
         println!("options {:?}", &options.get_database());
 
         options
@@ -73,10 +75,10 @@ impl DatabaseSettings {
                 self.host,
                 self.port,
                 self.database_name,
-                "disable".to_owned()
+                "enable".to_owned()
             );
 
-            return connection_string;
+           connection_string
         } else {
             connection_string = format!(
                 "postgres://{}:{}@{}:{}/{}?sslmode={}",
@@ -87,7 +89,7 @@ impl DatabaseSettings {
                 self.database_name,
                 "disable".to_owned()
             );
-            return connection_string;
+            connection_string
         }
         // connection_string
     }
