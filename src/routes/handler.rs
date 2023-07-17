@@ -1,5 +1,5 @@
 use crate::routes::{
-    auth::{get_user, sign_in, sign_up, update_user},
+    auth::{get_user, logout, sign_in, sign_up, update_user},
     // auth::sign_in,
     health_check::health_check,
     home_page::home_page,
@@ -13,6 +13,7 @@ pub fn config(conf: &mut web::ServiceConfig) {
         .service(sign_in)
         .service(get_user)
         .service(home_page)
+        .service(logout)
         .service(update_user);
 
     conf.service(scope);

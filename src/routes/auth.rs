@@ -209,7 +209,7 @@ pub async fn get_user(data: web::Data<AppState>, jwt: jwt_auth::JwtMiddleware) -
             .bind(user_id)
             .fetch_optional(&data.db)
             .await
-            .unwrap();
+            .expect("Incorrect user id");
 
     let filtered_user = user_parser(user.expect("user not found"));
 
