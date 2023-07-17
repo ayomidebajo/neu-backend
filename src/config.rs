@@ -78,7 +78,7 @@ impl DatabaseSettings {
                 "enable".to_owned()
             );
 
-           connection_string
+            connection_string
         } else {
             connection_string = format!(
                 "postgres://{}:{}@{}:{}/{}?sslmode={}",

@@ -4,10 +4,10 @@ use crate::config::AppState;
 // use crate::helpers::pass_helpers::hash_password;
 use crate::helpers::pass_helpers::verify_password;
 // use crate::models::UpdateCustomer;
-use crate::models::{ GetUser, LoginUser, TokenClaims};
+use crate::models::{GetUser, LoginUser, TokenClaims};
 use actix_web::{
     cookie::{time::Duration as ActixWebDuration, Cookie},
-    post, web, Error, HttpResponse, 
+    post, web, Error, HttpResponse,
 };
 use chrono::{Duration, Utc};
 use jsonwebtoken::{encode, EncodingKey, Header};
