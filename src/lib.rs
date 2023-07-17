@@ -20,9 +20,9 @@ pub fn run(
             .wrap(TracingLogger::default())
             .configure(routes::handler::config)
             .app_data(web::Data::new(config::AppState {
-                db: connection.clone(),
                 config: config.clone(),
             }))
+            .app_data(web::Data::new(connection.clone()))
     })
     .listen(listener)?
     .run();

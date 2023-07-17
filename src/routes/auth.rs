@@ -14,17 +14,19 @@ use jsonwebtoken::{encode, EncodingKey, Header};
 use serde_json::json;
 use std::fmt::Display;
 use uuid::Uuid;
+use sqlx::PgPool;
 
 // Handler for the sign-in route
 #[post("/user/login")]
 pub async fn sign_in(
     credentials: web::Json<LoginUser>,
-    connection: web::Data<AppState>,
+    app_state: web::Data<AppState>,
+    pg_pool: web::Data<PgPool>,
 ) -> Result<HttpResponse, Error> {
     let user: Option<GetUser> =
         sqlx::query_as::<_, GetUser>("SELECT * FROM customers WHERE email = $1")
             .bind(credentials.email.to_string())
-            .fetch_optional(&connection.db)
+            .fetch_optional(pg_pool.get_ref())
             .await
             .expect("error");
 
@@ -47,7 +49,7 @@ pub async fn sign_in(
                 let token = encode(
                     &Header::default(),
                     &claims,
-                    &EncodingKey::from_secret(connection.config.jwt_secret.as_ref()),
+                    &EncodingKey::from_secret(app_state.config.jwt_secret.as_ref()),
                 )
                 .unwrap();
 
@@ -68,203 +70,203 @@ pub async fn sign_in(
     }
 }
 
-// Handler for registering a user
-#[post("/user/register")]
-pub async fn sign_up(req: web::Json<Customer>, connection: web::Data<AppState>) -> HttpResponse {
-    let hashed_password = match hash_password(&req.password) {
-        Ok(hashed) => Some(hashed),
-        Err(err) => {
-            println!("Error hashing password: {}", err);
-            None
-        }
-    };
-    tracing::info!("Creating a new user account!");
+// // Handler for registering a user
+// #[post("/user/register")]
+// pub async fn sign_up(req: web::Json<Customer>, connection: web::Data<AppState>) -> HttpResponse {
+//     let hashed_password = match hash_password(&req.password) {
+//         Ok(hashed) => Some(hashed),
+//         Err(err) => {
+//             println!("Error hashing password: {}", err);
+//             None
+//         }
+//     };
+//     tracing::info!("Creating a new user account!");
 
-    let request_id = Uuid::new_v4();
-    tracing::info!(
-        "request_id {} - Adding '{}' '{}' as a new customer.",
-        request_id,
-        req.email,
-        req.fname
-    );
-
-    // validate user fields
-    let req = Customer::parse_validate(req.into_inner());
-
-    // match result
-    match req {
-        // execute queries if user values are okay
-        Ok(req) => {
-            // check if email exists
-            // let email_exists =
-            //     sqlx::query!(r#"SELECT email FROM customers WHERE email = $1"#, req.email)
-            //         .fetch_optional(&connection.db)
-            //         .await;
-            let email_exists = sqlx::query_as::<_, Customer>("SELECT * FROM customers")
-                .fetch_optional(&connection.db)
-                .await;
-
-            println!("email doesn't exist we move to the next code");
-
-            if let Ok(email) = email_exists {
-                if email.is_some() {
-                    tracing::info!(
-                        "request_id {} - Email '{:?}' already exists",
-                        request_id,
-                        email
-                    );
-                    println!("Email already exists {:?}", email);
-                    return actix_web::HttpResponse::Conflict().json("Email already exists");
-                }
-            }
-
-            tracing::info!(
-                "request_id {} - Saving new subscriber details in the database",
-                request_id
-            );
-            // save user into database
-
-            let created_at = Utc::now();
-            let query = "
-        INSERT INTO customers (id, email, fname, lname, password, is_verified, is_subscribed, created_at)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)";
-
-            match sqlx::query(query)
-        .bind(Uuid::new_v4())
-        .bind(req.email)
-        .bind(req.fname)
-        .bind(req.lname)
-        .bind(hashed_password)
-        .bind(req.is_verified_user)
-        .bind(req.is_subscribed)
-        .bind(created_at)
-        .execute(&connection.db)
-        .await
-//             match sqlx::query!(
-//         r#"
-// INSERT INTO customers (id, email, fname, lname, password, is_verified, is_subscribed, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-// "#,
-//         Uuid::new_v4(),
+//     let request_id = Uuid::new_v4();
+//     tracing::info!(
+//         "request_id {} - Adding '{}' '{}' as a new customer.",
+//         request_id,
 //         req.email,
-//         req.fname,
-//         req.lname,
-//         hashed_password,
-//         req.is_verified_user,
-//         req.is_subscribed,
-//         Utc::now()
-//     )
-//     // We use `get_ref` to get an immutable reference to the `PgConnection`
-//     // wrapped by `web::Data`.
-//     .execute(&connection.db)
-//     .await
-    {
-        Ok(_) => {
-            tracing::info!(
-            "request_id {} - New customer details have been saved", request_id
-            );
-            actix_web::HttpResponse::Ok().finish()
-        }
-        Err(e) => {
-            tracing::error!(
-            "request_id {} - Failed to execute query: {:?}",
-            request_id,
-            e
-            );
-            actix_web::HttpResponse::InternalServerError().body(e.to_string())
-        }
-    }
-        }
-        // if user details are invalid return response instead of
-        Err(e) => {
-            tracing::warn!("request_id {} - Failed parse: {:?}", request_id, e);
-            actix_web::HttpResponse::BadRequest().json(e.to_string())
-        }
-    }
-}
+//         req.fname
+//     );
 
-// #[derive(thiserror::Error)]
-#[derive(Debug)]
-pub enum LoginError {
-    AuthError,
-    UnexpectedError,
-}
+//     // validate user fields
+//     let req = Customer::parse_validate(req.into_inner());
 
-impl Display for LoginError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", LoginError::AuthError)
-    }
-}
+//     // match result
+//     match req {
+//         // execute queries if user values are okay
+//         Ok(req) => {
+//             // check if email exists
+//             // let email_exists =
+//             //     sqlx::query!(r#"SELECT email FROM customers WHERE email = $1"#, req.email)
+//             //         .fetch_optional(&connection.db)
+//             //         .await;
+//             let email_exists = sqlx::query_as::<_, Customer>("SELECT * FROM customers")
+//                 .fetch_optional(&connection.db)
+//                 .await;
 
-// #[allow(clippy::await_holding_refcell_ref)]
-#[get("/user/me")]
-pub async fn get_user(data: web::Data<AppState>, jwt: jwt_auth::JwtMiddleware) -> impl Responder {
-    // let ext = req.extensions();
-    let user_id = jwt.user_id;
+//             println!("email doesn't exist we move to the next code");
 
-    // // drop(ext);
-    // let user_id = user_id
+//             if let Ok(email) = email_exists {
+//                 if email.is_some() {
+//                     tracing::info!(
+//                         "request_id {} - Email '{:?}' already exists",
+//                         request_id,
+//                         email
+//                     );
+//                     println!("Email already exists {:?}", email);
+//                     return actix_web::HttpResponse::Conflict().json("Email already exists");
+//                 }
+//             }
 
-    let user: Option<GetUser> =
-        sqlx::query_as::<_, GetUser>("SELECT * FROM customers WHERE id = $1")
-            .bind(user_id)
-            .fetch_optional(&data.db)
-            .await
-            .unwrap();
+//             tracing::info!(
+//                 "request_id {} - Saving new subscriber details in the database",
+//                 request_id
+//             );
+//             // save user into database
 
-    let filtered_user = user_parser(user.expect("user not found"));
+//             let created_at = Utc::now();
+//             let query = "
+//         INSERT INTO customers (id, email, fname, lname, password, is_verified, is_subscribed, created_at)
+//         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)";
 
-    let json_response = serde_json::json!({
-        "status":  "success",
-        "data": serde_json::json!({
-            "user": filtered_user
-        })
-    });
+//             match sqlx::query(query)
+//         .bind(Uuid::new_v4())
+//         .bind(req.email)
+//         .bind(req.fname)
+//         .bind(req.lname)
+//         .bind(hashed_password)
+//         .bind(req.is_verified_user)
+//         .bind(req.is_subscribed)
+//         .bind(created_at)
+//         .execute(&connection.db)
+//         .await
+// //             match sqlx::query!(
+// //         r#"
+// // INSERT INTO customers (id, email, fname, lname, password, is_verified, is_subscribed, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+// // "#,
+// //         Uuid::new_v4(),
+// //         req.email,
+// //         req.fname,
+// //         req.lname,
+// //         hashed_password,
+// //         req.is_verified_user,
+// //         req.is_subscribed,
+// //         Utc::now()
+// //     )
+// //     // We use `get_ref` to get an immutable reference to the `PgConnection`
+// //     // wrapped by `web::Data`.
+// //     .execute(&connection.db)
+// //     .await
+//     {
+//         Ok(_) => {
+//             tracing::info!(
+//             "request_id {} - New customer details have been saved", request_id
+//             );
+//             actix_web::HttpResponse::Ok().finish()
+//         }
+//         Err(e) => {
+//             tracing::error!(
+//             "request_id {} - Failed to execute query: {:?}",
+//             request_id,
+//             e
+//             );
+//             actix_web::HttpResponse::InternalServerError().body(e.to_string())
+//         }
+//     }
+//         }
+//         // if user details are invalid return response instead of
+//         Err(e) => {
+//             tracing::warn!("request_id {} - Failed parse: {:?}", request_id, e);
+//             actix_web::HttpResponse::BadRequest().json(e.to_string())
+//         }
+//     }
+// }
 
-    HttpResponse::Ok().json(json_response)
-}
+// // #[derive(thiserror::Error)]
+// #[derive(Debug)]
+// pub enum LoginError {
+//     AuthError,
+//     UnexpectedError,
+// }
 
-#[post("/user/update")]
-pub async fn update_user(
-    req: web::Json<UpdateCustomer>,
-    data: web::Data<AppState>,
-    jwt: jwt_auth::JwtMiddleware,
-) -> impl Responder {
-    let user_id = jwt.user_id;
-    let user: Option<GetUser> =
-        sqlx::query_as::<_, GetUser>("SELECT * FROM customers WHERE id = $1")
-            .bind(user_id)
-            .fetch_optional(&data.db)
-            .await
-            .expect("Incorrect user id");
+// impl Display for LoginError {
+//     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+//         write!(f, "{}", LoginError::AuthError)
+//     }
+// }
 
-    let _user = user.unwrap();
-    match sqlx::query("UPDATE customers SET fname = $1, lname = $2, phone_no = $3 WHERE id = $4")
-        .bind(req.fname.clone())
-        .bind(req.lname.clone())
-        .bind(req.phone_no.clone())
-        .bind(user_id)
-        .execute(&data.db)
-        .await
-    {
-        Ok(_) => HttpResponse::Ok().json(json!({"status": "success"})),
-        Err(_) => HttpResponse::InternalServerError().json(json!({
-            "status": "fail"
-        })),
-    }
-    // HttpResponse::Ok().json(json!({"status": "success",  "data": serde_json::json!({
-    //         "user": user
-    //     })}))
-}
+// // #[allow(clippy::await_holding_refcell_ref)]
+// #[get("/user/me")]
+// pub async fn get_user(data: web::Data<AppState>, jwt: jwt_auth::JwtMiddleware) -> impl Responder {
+//     // let ext = req.extensions();
+//     let user_id = jwt.user_id;
 
-#[get("/auth/logout")]
-async fn logout(_: jwt_auth::JwtMiddleware) -> impl Responder {
-    let cookie = Cookie::build("token", "")
-        .path("/")
-        .max_age(ActixWebDuration::new(-1, 0))
-        .http_only(true)
-        .finish();
+//     // // drop(ext);
+//     // let user_id = user_id
 
-    HttpResponse::Ok()
-        .cookie(cookie)
-        .json(json!({"status": "success"}))
-}
+//     let user: Option<GetUser> =
+//         sqlx::query_as::<_, GetUser>("SELECT * FROM customers WHERE id = $1")
+//             .bind(user_id)
+//             .fetch_optional(&data.db)
+//             .await
+//             .unwrap();
+
+//     let filtered_user = user_parser(user.expect("user not found"));
+
+//     let json_response = serde_json::json!({
+//         "status":  "success",
+//         "data": serde_json::json!({
+//             "user": filtered_user
+//         })
+//     });
+
+//     HttpResponse::Ok().json(json_response)
+// }
+
+// #[post("/user/update")]
+// pub async fn update_user(
+//     req: web::Json<UpdateCustomer>,
+//     data: web::Data<AppState>,
+//     jwt: jwt_auth::JwtMiddleware,
+// ) -> impl Responder {
+//     let user_id = jwt.user_id;
+//     let user: Option<GetUser> =
+//         sqlx::query_as::<_, GetUser>("SELECT * FROM customers WHERE id = $1")
+//             .bind(user_id)
+//             .fetch_optional(&data.db)
+//             .await
+//             .expect("Incorrect user id");
+
+//     let _user = user.unwrap();
+//     match sqlx::query("UPDATE customers SET fname = $1, lname = $2, phone_no = $3 WHERE id = $4")
+//         .bind(req.fname.clone())
+//         .bind(req.lname.clone())
+//         .bind(req.phone_no.clone())
+//         .bind(user_id)
+//         .execute(&data.db)
+//         .await
+//     {
+//         Ok(_) => HttpResponse::Ok().json(json!({"status": "success"})),
+//         Err(_) => HttpResponse::InternalServerError().json(json!({
+//             "status": "fail"
+//         })),
+//     }
+//     // HttpResponse::Ok().json(json!({"status": "success",  "data": serde_json::json!({
+//     //         "user": user
+//     //     })}))
+// }
+
+// #[get("/auth/logout")]
+// async fn logout(_: jwt_auth::JwtMiddleware) -> impl Responder {
+//     let cookie = Cookie::build("token", "")
+//         .path("/")
+//         .max_age(ActixWebDuration::new(-1, 0))
+//         .http_only(true)
+//         .finish();
+
+//     HttpResponse::Ok()
+//         .cookie(cookie)
+//         .json(json!({"status": "success"}))
+// }

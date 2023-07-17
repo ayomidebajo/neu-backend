@@ -1,0 +1,27 @@
+version: '3'
+services:
+  neu_server:
+    image: rust:latest
+    container_name: neu-backend
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./data:/usr/src/neu/target/release
+  postgres:
+    image: postgres:latest
+    container_name: neudb
+    ports:
+      - '5432:5432'
+    volumes:
+      - progresDB:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=neudb
+volumes:
+  progresDB:
