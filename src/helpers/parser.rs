@@ -26,7 +26,7 @@ pub fn user_parser(u: GetCustomer) -> FilteredUser {
         fname: u.fname.to_owned(),
         lname: u.lname.to_owned(),
         email: u.email.to_owned(),
-        is_verified: u.is_verified_user.to_owned(),
+        is_verified: u.is_verified.to_owned(),
         created_at: u.created_at.to_owned(),
     }
 }
