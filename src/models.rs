@@ -23,9 +23,9 @@ pub struct GetCustomer {
     pub fname: String,
     pub lname: String,
     pub email: String,
-    pub phone_no: String,
+    // pub phone_no: String,
     pub password: String,
-    pub is_verified_user: bool,
+    pub is_verified: bool,
     pub is_subscribed: bool,
     pub created_at: chrono::DateTime<Utc>,
 }
