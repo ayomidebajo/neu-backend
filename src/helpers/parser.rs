@@ -1,6 +1,6 @@
 use unicode_segmentation::UnicodeSegmentation;
 
-use crate::models::{FilteredUser, GetUser};
+use crate::models::{FilteredUser, GetCustomer};
 
 pub fn name_parser(s: String) -> bool {
     // `.trim()` returns a view over the input `s` without trailing
@@ -20,13 +20,13 @@ pub fn name_parser(s: String) -> bool {
     !(is_empty_or_whitespace || is_too_long || contains_forbidden_characters)
 }
 
-pub fn user_parser(u: GetUser) -> FilteredUser {
+pub fn user_parser(u: GetCustomer) -> FilteredUser {
     FilteredUser {
         id: u.id,
         fname: u.fname.to_owned(),
         lname: u.lname.to_owned(),
         email: u.email.to_owned(),
-        is_verified: u.is_verified.to_owned(),
+        is_verified: u.is_verified_user.to_owned(),
         created_at: u.created_at.to_owned(),
     }
 }

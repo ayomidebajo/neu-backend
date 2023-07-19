@@ -1,0 +1,9 @@
+-- Add migration script here
+CREATE TABLE IF NOT EXISTS services (
+	id SERIAL PRIMARY KEY,
+	business_id UUID NOT NULL,
+	name TEXT NOT NULL,
+	services_slug TEXT NOT NULL UNIQUE,
+	created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+	updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+);
