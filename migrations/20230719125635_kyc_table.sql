@@ -1,5 +1,5 @@
 -- Add migration script here
--- CREATE TYPE identity_proof_type AS ENUM ('PASSPORT', 'NATIONAL_ID', 'DRIVERS_LICENSE', 'OTHERS');
+CREATE TYPE identity_proof_type AS ENUM ('PASSPORT', 'NATIONAL_ID', 'DRIVERS_LICENSE', 'OTHERS');
 
 CREATE TABLE IF NOT EXISTS kyc (
 	id UUID NOT NULL PRIMARY KEY,
