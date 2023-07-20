@@ -1,24 +1,21 @@
 -- Add migration script here
-CREATE TABLE IF NOT EXISTS merchants_settings_profile (
-   id uuid NOT NULL,
-   PRIMARY KEY (id),
-   email TEXT NOT NULL UNIQUE,
-   fname TEXT NOT NULL,
-   lname TEXT NOT NULL,
-   phone_no TEXT,
-   password VARCHAR NOT NULL,
-  
+CREATE TABLE IF NOT EXISTS merchants_app_settings (
+   id SERIAL PRIMARY KEY UNIQUE,
+   merchant_id uuid,
    is_merchant BOOLEAN NOT NULL DEFAULT true,
-   is_verified BOOLEAN NOT NULL,
+   is_verified BOOLEAN DEFAULT false,
    business_name TEXT NOT NULL,
-   business_logo TEXT NOT NULL,
-   business_description TEXT NOT NULL,
-   business_address TEXT NOT NULL,
-   slug TEXT NOT NULL,
-   tags TEXT NOT NULL,
-   no_of_employees INT NOT NULL,
-   open_days TEXT NOT NULL,
-   open_hours TEXT NOT NULL,
+   business_logo TEXT,
+   business_description TEXT,
+   push_notification BOOLEAN DEFAULT false,
+   email_notification BOOLEAN DEFAULT false,
+   business_address TEXT ,
+   slug TEXT,
+   tags TEXT,
+   no_of_employees INT DEFAULT 0,
+   open_days TEXT,
+   open_hours TEXT,
     updated_at timestamp with time zone,
-    created_at timestamp with time zone NOT NULL
+    created_at timestamp with time zone NOT NULL,
+    CONSTRAINT uk_merchant_id FOREIGN KEY (merchant_id) REFERENCES merchants(id)
 );

@@ -3,7 +3,6 @@ use crate::config::AppState;
 use crate::models::CreateBusiness;
 use crate::models::GetUser;
 use actix_web::{post, web, Error, HttpResponse};
-use chrono::Utc;
 use serde_json::json;
 use uuid::Uuid;
 
@@ -43,8 +42,7 @@ pub async fn create_business_profile(
         })));
     }
     // if user does not exist, create profile
-    let created_at = Utc::now();
-    let query = "INSERT INTO merchant_business_profile (id, merchant_id, business_id, no_of_employees, services, merchant_logo, business_address, business_phone, business_email, business_website, business_description, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)";
+    let query = "INSERT INTO merchant_business_profile (id, merchant_id, business_id, no_of_employees, services, merchant_logo, business_phone, business_email, business_website, business_description) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)";
 
     match sqlx::query(query)
         .bind(Uuid::new_v4())
@@ -59,7 +57,6 @@ pub async fn create_business_profile(
         .bind(&user_details.business_email)
         .bind(&user_details.business_website)
         .bind(&user_details.business_description)
-        .bind(created_at)
         .execute(&connection.db)
         .await
     {

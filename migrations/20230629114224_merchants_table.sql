@@ -1,6 +1,6 @@
 -- Add migration script here
 CREATE TABLE IF NOT EXISTS merchants(
-   id uuid NOT NULL,
+   id uuid NOT NULL UNIQUE,
    PRIMARY KEY (id),
    email TEXT NOT NULL UNIQUE,
    fname TEXT NOT NULL,
@@ -10,6 +10,6 @@ CREATE TABLE IF NOT EXISTS merchants(
    password VARCHAR NOT NULL,
    created_at timestamp with time zone NOT NULL,
    updated_at timestamp with time zone,
-   is_verified BOOLEAN NOT NULL,
-   is_active BOOLEAN NOT NULL
+   is_verified BOOLEAN DEFAULT false,
+   is_active BOOLEAN DEFAULT false
 );
