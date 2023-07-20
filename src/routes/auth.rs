@@ -272,7 +272,7 @@ pub async fn merchant_sign_in(
     connection: web::Data<AppState>,
 ) -> Result<HttpResponse, Error> {
     let user: Option<GetUser> =
-        sqlx::query_as::<_, GetUser>("SELECT id, email, password FROM customers WHERE email = $1")
+        sqlx::query_as::<_, GetUser>("SELECT id, email, password FROM merchants WHERE email = $1")
             .bind(credentials.email.to_string())
             .fetch_optional(&connection.db)
             .await
