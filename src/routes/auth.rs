@@ -78,7 +78,7 @@ pub async fn sign_up(req: web::Json<Customer>, connection: web::Data<AppState>) 
     let hashed_password = match hash_password(&req.password) {
         Ok(hashed) => Some(hashed),
         Err(err) => {
-            println!("Error hashing password: {}", err);
+            println!("Error hashing password: {err}");
             None
         }
     };
@@ -113,7 +113,7 @@ pub async fn sign_up(req: web::Json<Customer>, connection: web::Data<AppState>) 
                         request_id,
                         email
                     );
-                    println!("Email already exists {:?}", email);
+                    println!("Email already exists {email:?}");
                     return actix_web::HttpResponse::Conflict().json("Email already exists");
                 }
             }
@@ -130,12 +130,12 @@ pub async fn sign_up(req: web::Json<Customer>, connection: web::Data<AppState>) 
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)";
             let id = Uuid::new_v4();
             let returned_user = FilteredUser {
-                id: id.clone(),
+                id,
                 email: req.email.clone(),
                 fname: req.fname.clone(),
                 lname: req.lname.clone(),
-                is_verified: req.is_verified_user.clone(),
-                created_at: created_at.clone(),
+                is_verified: req.is_verified_user,
+                created_at,
             };
 
             match sqlx::query(query)
@@ -185,7 +185,7 @@ pub async fn merchant_sign_up(
     let hashed_password = match hash_password(&req.password) {
         Ok(hashed) => Some(hashed),
         Err(err) => {
-            println!("Error hashing password: {}", err);
+            println!("Error hashing password: {err}");
             None
         }
     };
@@ -223,7 +223,7 @@ pub async fn merchant_sign_up(
                     request_id,
                     email
                 );
-                println!("Email already exists {:?}", email);
+                println!("Email already exists {email:?}");
                 return actix_web::HttpResponse::Conflict().json("Email already exists");
             }
 
@@ -239,12 +239,12 @@ pub async fn merchant_sign_up(
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)";
             let id = Uuid::new_v4();
             let returned_merchant = FilteredMerchant {
-                id: id.clone(),
+                id,
                 fname: req.fname.clone(),
                 lname: req.lname.clone(),
                 email: req.email.clone(),
                 is_verified: req.is_verified,
-                created_at: created_at.clone(),
+                created_at,
                 business_name: req.business_name.clone(),
             };
 

@@ -96,7 +96,7 @@ pub struct FilteredMerchant {
     pub email: String,
     pub is_verified: bool,
     pub created_at: chrono::DateTime<Utc>,
-    pub business_name: String
+    pub business_name: String,
 }
 
 // impl FilteredMerchant {
