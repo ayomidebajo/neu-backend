@@ -3,9 +3,10 @@ use crate::config::AppState;
 use crate::helpers::parser::user_parser;
 use crate::helpers::pass_helpers::hash_password;
 use crate::helpers::pass_helpers::verify_password;
-use crate::models::GetCustomer;
-use crate::models::{Customer, GetUser, LoginUser, TokenClaims};
-use crate::models::{Merchant, UpdateCustomer};
+use crate::models::{
+    Customer, FilteredMerchant, FilteredUser, GetCustomer, GetUser, LoginUser, Merchant,
+    TokenClaims, UpdateCustomer,
+};
 use actix_web::{
     cookie::{time::Duration as ActixWebDuration, Cookie},
     get, post, web, Error, HttpResponse, Responder,
@@ -24,10 +25,12 @@ pub async fn sign_in(
 ) -> Result<HttpResponse, Error> {
     let user: Option<GetUser> =
         sqlx::query_as::<_, GetUser>("SELECT id, email, password FROM customers WHERE email = $1")
-            .bind(credentials.email.to_string())
+            .bind(credentials.email.to_string().clone())
             .fetch_optional(&connection.db)
             .await
             .expect("error");
+
+    let returned_user: Option<FilteredUser> = sqlx::query_as::<_, FilteredUser>("SELECT id, email, fname, lname, email, is_verified, created_at FROM customers WHERE email = $1").bind(credentials.email.to_string()).fetch_optional(&connection.db).await.expect("error getting user");
 
     // match user result and handles error gracefully
     match user.clone() {
@@ -59,7 +62,7 @@ pub async fn sign_in(
                     .finish();
                 Ok(HttpResponse::Ok()
                     .cookie(cookie)
-                    .json(json!({"status": "success", "token": token})))
+                    .json(json!({"status": "success", "status_code": "200", "token": token, "message": returned_user})))
             } else {
                 Err(actix_web::error::ErrorUnauthorized("Incorrect password"))
             }
@@ -75,7 +78,7 @@ pub async fn sign_up(req: web::Json<Customer>, connection: web::Data<AppState>) 
     let hashed_password = match hash_password(&req.password) {
         Ok(hashed) => Some(hashed),
         Err(err) => {
-            println!("Error hashing password: {}", err);
+            println!("Error hashing password: {err}");
             None
         }
     };
@@ -110,7 +113,7 @@ pub async fn sign_up(req: web::Json<Customer>, connection: web::Data<AppState>) 
                         request_id,
                         email
                     );
-                    println!("Email already exists {:?}", email);
+                    println!("Email already exists {email:?}");
                     return actix_web::HttpResponse::Conflict().json("Email already exists");
                 }
             }
@@ -125,9 +128,18 @@ pub async fn sign_up(req: web::Json<Customer>, connection: web::Data<AppState>) 
             let query = "
         INSERT INTO customers (id, email, fname, lname, password, is_verified, is_subscribed, created_at)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)";
+            let id = Uuid::new_v4();
+            let returned_user = FilteredUser {
+                id,
+                email: req.email.clone(),
+                fname: req.fname.clone(),
+                lname: req.lname.clone(),
+                is_verified: req.is_verified_user,
+                created_at,
+            };
 
             match sqlx::query(query)
-                .bind(Uuid::new_v4())
+                .bind(id)
                 .bind(req.email)
                 .bind(req.fname)
                 .bind(req.lname)
@@ -143,8 +155,9 @@ pub async fn sign_up(req: web::Json<Customer>, connection: web::Data<AppState>) 
                         "request_id {} - New customer details have been saved",
                         request_id
                     );
-                    actix_web::HttpResponse::Ok()
-                        .json(json!({"status": "success", "message": "User created successfully"}))
+                    actix_web::HttpResponse::Ok().json(
+                        json!({"status": "success", "status_code": "201", "message": returned_user}),
+                    )
                 }
                 Err(e) => {
                     tracing::error!(
@@ -172,7 +185,7 @@ pub async fn merchant_sign_up(
     let hashed_password = match hash_password(&req.password) {
         Ok(hashed) => Some(hashed),
         Err(err) => {
-            println!("Error hashing password: {}", err);
+            println!("Error hashing password: {err}");
             None
         }
     };
@@ -210,7 +223,7 @@ pub async fn merchant_sign_up(
                     request_id,
                     email
                 );
-                println!("Email already exists {:?}", email);
+                println!("Email already exists {email:?}");
                 return actix_web::HttpResponse::Conflict().json("Email already exists");
             }
 
@@ -224,9 +237,19 @@ pub async fn merchant_sign_up(
             let query = "
         INSERT INTO merchants (id, email, fname, lname, password, business_name, is_active, is_verified, created_at)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)";
+            let id = Uuid::new_v4();
+            let returned_merchant = FilteredMerchant {
+                id,
+                fname: req.fname.clone(),
+                lname: req.lname.clone(),
+                email: req.email.clone(),
+                is_verified: req.is_verified,
+                created_at,
+                business_name: req.business_name.clone(),
+            };
 
             match sqlx::query(query)
-                .bind(Uuid::new_v4())
+                .bind(id)
                 .bind(req.email)
                 .bind(req.fname)
                 .bind(req.lname)
@@ -244,7 +267,7 @@ pub async fn merchant_sign_up(
                         request_id
                     );
                     actix_web::HttpResponse::Ok().json(
-                        json!({"status": "success", "message": "Merchant created successfully"}),
+                        json!({"status": "success", "status_code": "201", "message": returned_merchant}),
                     )
                 }
                 Err(e) => {
@@ -273,10 +296,11 @@ pub async fn merchant_sign_in(
 ) -> Result<HttpResponse, Error> {
     let user: Option<GetUser> =
         sqlx::query_as::<_, GetUser>("SELECT id, email, password FROM merchants WHERE email = $1")
-            .bind(credentials.email.to_string())
+            .bind(credentials.email.to_string().clone())
             .fetch_optional(&connection.db)
             .await
             .expect("error");
+    let returned_user: Option<FilteredMerchant> = sqlx::query_as::<_, FilteredMerchant>("SELECT id, email, fname, lname, email, is_verified, business_name, created_at FROM merchants WHERE email = $1").bind(credentials.email.to_string().clone()).fetch_optional(&connection.db).await.expect("error getting returned user");
 
     // match user result and handles error gracefully
     match user.clone() {
@@ -306,9 +330,10 @@ pub async fn merchant_sign_in(
                     .max_age(ActixWebDuration::new(60 * 60, 0))
                     .http_only(true)
                     .finish();
+
                 Ok(HttpResponse::Ok()
                     .cookie(cookie)
-                    .json(json!({"status": "success", "token": token})))
+                    .json(json!({"status": "success", "status_code": "200", "token": token, "message": returned_user })))
             } else {
                 Err(actix_web::error::ErrorUnauthorized("Incorrect password"))
             }
@@ -351,9 +376,10 @@ pub async fn get_user(data: web::Data<AppState>, jwt: jwt_auth::JwtMiddleware) -
 
     let json_response = serde_json::json!({
         "status":  "success",
-        "data": serde_json::json!({
+        "message": serde_json::json!({
             "user": filtered_user
-        })
+        }),
+        "status_code": "200"
     });
 
     HttpResponse::Ok().json(json_response)

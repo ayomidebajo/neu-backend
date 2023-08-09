@@ -88,6 +88,30 @@ pub struct FilteredUser {
     pub created_at: chrono::DateTime<Utc>,
 }
 
+#[derive(Deserialize, Serialize, Clone, Debug, sqlx::FromRow)]
+pub struct FilteredMerchant {
+    pub id: Uuid,
+    pub fname: String,
+    pub lname: String,
+    pub email: String,
+    pub is_verified: bool,
+    pub created_at: chrono::DateTime<Utc>,
+    pub business_name: String,
+}
+
+// impl FilteredMerchant {
+//     pub fn new(merchant: Merchant) -> Self {
+//         Self {
+//             id: merchant.id,
+//             fname: merchant.fname,
+//             lname: merchant.lname,
+//             email: merchant.email,
+//             is_verified: merchant.is_verified,
+//             created_at: merchant.created_at,
+//         }
+//     }
+// }
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TokenClaims {
     pub sub: String,

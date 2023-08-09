@@ -24,9 +24,9 @@ async fn main() -> std::io::Result<()> {
 
     let port = listener.local_addr().unwrap().port();
 
-    let random_addr = format!("http://127.0.0.1:{}", port);
+    let random_addr = format!("http://127.0.0.1:{port}");
 
-    println!("listening on {}", random_addr);
+    println!("listening on {random_addr}");
 
     let connection_pool = PgPoolOptions::new()
         .max_connections(10)

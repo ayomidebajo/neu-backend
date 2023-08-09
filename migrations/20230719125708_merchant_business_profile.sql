@@ -19,5 +19,4 @@ CREATE TABLE IF NOT EXISTS merchant_business_profile (
 	business_website TEXT,
 	business_social_media TEXT,
 	CONSTRAINT unique_merchant_id_fkey FOREIGN KEY (merchant_id) REFERENCES merchants (id)
-	-- CONSTRAINT unique_business_id_fkey FOREIGN KEY (business_id) REFERENCES businesses (id)
 );
