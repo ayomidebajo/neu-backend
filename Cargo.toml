@@ -42,7 +42,7 @@ secrecy = { version = "0.8", features = ["serde"] }
 urlencoding = "2.1.2"
 actix-web-httpauth = "0.8.0"
 # argonautica = "0.2.0"
-dotenv = "0.15.0"
+
 actix-web-flash-messages = { version = "^0.4.2", features = ["cookies"] }
 cron = "0.12.0"
 sqlx = { version = "0.7.1", features = [
@@ -55,6 +55,8 @@ sqlx = { version = "0.7.1", features = [
     "tls-rustls",
     "runtime-tokio"
 ] }
+[dev-dependencies]
+dotenv = "0.15.0"
 # sqlx = { version = "0.6.3", default-features = true, features = [
 #     "runtime-actix-native-tls",
 #     "macros",
