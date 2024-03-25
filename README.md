@@ -21,7 +21,7 @@ for example `sqlx migrate add create_subscriptions_table`
 then run `sqlx migrate run` -->
 
 ### run maker file
-`make run` this will run the server
 `make build` this will build docker deps and build the server
+`make run` this will run the server
 `make sqlx_prepare` this will run sqlx prepare command
 
